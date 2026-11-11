@@ -25,6 +25,14 @@ export function legalPageIsPublic(text: string, env: Record<string, string | und
   return legalPagesLive(env) && !hasBracketedPlaceholder(text);
 }
 
+/** Drop attorney drafting notes before a page is shown to anyone who is not an administrator. */
+export function stripNonPublicSections(markdown: string): string {
+  const pattern = /^#{1,6} .*(?:Drafting notes|not part of the public).*$/im;
+  const match = pattern.exec(markdown);
+  if (!match) return markdown;
+  return markdown.slice(0, match.index).trimEnd() + "\n";
+}
+
 export const RETENTION_SETTINGS = [
   {
     key: "compCodeIncidents",

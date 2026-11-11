@@ -143,7 +143,7 @@ workspace no longer has a machine-draft column: `translations.ai_assistance`
 is dropped on the next push because that text was only shown in the removed
 workspace layer. English translations shown in the catalog, the translation
 workspace, and translation API responses include `TRANSLATION_DISCLOSURE`
-from `@workspace/config`. That wording is pending legal review. Public
+from `@workspace/config`. That wording was approved in legal review on Nov 11, 2026. Public
 responses do not include model or provider names. Re-run `pnpm db:seed` and
 `pnpm db:seed:research` to refresh sample catalog rows.
 

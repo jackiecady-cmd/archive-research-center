@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Router } from "express";
-import { hasBracketedPlaceholder, legalPageIsPublic } from "@workspace/config/legal";
+import { hasBracketedPlaceholder, legalPageIsPublic, stripNonPublicSections } from "@workspace/config/legal";
 
 function contentDir(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
@@ -62,12 +62,14 @@ router.get("/legal/pages/:slug", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Not found" });
     return;
   }
-  const body = pageBody(page.file);
-  const isPublic = legalPageIsPublic(body);
-  if (!isPublic && req.user?.role !== "admin") {
+  const raw = pageBody(page.file);
+  const isPublic = legalPageIsPublic(raw);
+  const admin = req.user?.role === "admin";
+  if (!isPublic && !admin) {
     res.status(404).json({ error: "Not found" });
     return;
   }
+  const body = admin ? raw : stripNonPublicSections(raw);
   res.json({
     slug: page.slug as PageSlug,
     title: page.title,

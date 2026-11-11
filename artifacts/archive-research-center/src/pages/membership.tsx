@@ -69,10 +69,6 @@ export function MembershipPage() {
                   )}
                   <CardHeader className="text-center pb-4 pt-8">
                     <CardTitle className="text-2xl font-serif">{plan.name}</CardTitle>
-                    <div className="mt-4 flex items-baseline justify-center gap-1">
-                      <span className="text-4xl font-bold tracking-tight">${plan.priceUsd}</span>
-                      <span className="text-sm font-medium text-muted-foreground">/{plan.billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
-                    </div>
                   </CardHeader>
                   <CardContent className="flex-1">
                     <ul className="space-y-3 text-sm">

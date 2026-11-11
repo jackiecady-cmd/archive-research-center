@@ -1122,7 +1122,7 @@ components:
         excerpt: { type: ["string", "null"] }
         translationDisclosure:
           type: string
-          description: Public translation disclosure. Wording is TRANSLATION_DISCLOSURE in @workspace/config and is pending legal review. Do not put a model or provider name in this field.
+          description: Public translation disclosure. The wording is TRANSLATION_DISCLOSURE in @workspace/config, approved in legal review on Nov 11, 2026. Do not put a model or provider name in this field.
         originalLanguageText: { type: ["string", "null"] }
         externalUrl: { type: ["string", "null"] }
         tags: { type: array, maxItems: 50, items: { type: string } }
@@ -1532,14 +1532,10 @@ components:
 
     MembershipPlan:
       type: object
-      required: [id, name, billingPeriod, priceUsd, features]
+      required: [id, name, features]
       properties:
         id: { type: string }
         name: { type: string }
-        billingPeriod:
-          type: string
-          enum: [monthly, annual]
-        priceUsd: { type: number }
         features: { type: array, items: { type: string } }
         recommended: { type: boolean }
 

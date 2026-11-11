@@ -3,67 +3,31 @@ import { requireUser } from "../auth/middleware";
 
 const router = Router();
 
-// These prices are not for sale and do not unlock license-restricted, link-only, or catalogue-only holdings.
+// Unpriced descriptions of the service. They do not unlock license-restricted, link-only, or catalogue-only holdings.
 const PLANS = [
   {
-    id: "researcher-monthly",
+    id: "researcher",
     name: "Researcher",
-    billingPeriod: "monthly",
-    priceUsd: 9.99,
     features: [
-      "Full archive search access",
+      "Archive search",
       "Up to 5 Research Projects",
-      "Claim Cards & evidence trails",
+      "Claim Cards and evidence trails",
       "Research Commons participation",
       "Translation Center (read)",
     ],
     recommended: false,
   },
   {
-    id: "scholar-monthly",
+    id: "scholar",
     name: "Scholar",
-    billingPeriod: "monthly",
-    priceUsd: 19.99,
     features: [
       "Everything in Researcher",
       "Unlimited Research Projects",
       "Private discussion rooms",
       "Priority Research Concierge",
       "Translation Center (annotate)",
-      "Early access to new collections",
     ],
     recommended: true,
-  },
-  {
-    id: "researcher-annual",
-    name: "Researcher (Annual)",
-    billingPeriod: "annual",
-    priceUsd: 99.99,
-    features: [
-      "Full archive search access",
-      "Up to 5 Research Projects",
-      "Claim Cards & evidence trails",
-      "Research Commons participation",
-      "Translation Center (read)",
-      "2 months free vs monthly",
-    ],
-    recommended: false,
-  },
-  {
-    id: "scholar-annual",
-    name: "Scholar (Annual)",
-    billingPeriod: "annual",
-    priceUsd: 199.99,
-    features: [
-      "Everything in Researcher",
-      "Unlimited Research Projects",
-      "Private discussion rooms",
-      "Priority Research Concierge",
-      "Translation Center (annotate)",
-      "Early access to new collections",
-      "2 months free vs monthly",
-    ],
-    recommended: false,
   },
 ];
 

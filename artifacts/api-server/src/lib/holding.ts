@@ -1,4 +1,4 @@
-import { omitOffsiteExcerpt, omitOffsiteSourceText, type HoldingRecord } from "@workspace/config/legal";
+import { isCitationOnly, omitOffsiteExcerpt, omitOffsiteSourceText, type HoldingRecord } from "@workspace/config/legal";
 
 type HoldingRow = HoldingRecord & {
   excerpt?: string | null;
@@ -6,9 +6,11 @@ type HoldingRow = HoldingRecord & {
 };
 
 export function visibleExcerpt(row: HoldingRow): string | null {
-  return omitOffsiteExcerpt(row) ? null : row.excerpt ?? null;
+  if (isCitationOnly(row) || omitOffsiteExcerpt(row)) return null;
+  return row.excerpt ?? null;
 }
 
 export function visibleOriginalText(row: HoldingRow): string | null {
-  return omitOffsiteSourceText(row) ? null : row.originalLanguageText ?? null;
+  if (isCitationOnly(row) || omitOffsiteSourceText(row)) return null;
+  return row.originalLanguageText ?? null;
 }

@@ -87,7 +87,7 @@ Section 512(i)(1)(A) provides that the limitations on liability in § 512 apply 
 We adopt the following policy, which will also be stated in our Terms of Use:
 
 - We will terminate, in appropriate circumstances, the accounts of members who are repeat infringers.
-- “[R]epeat infringer” and “appropriate circumstances” will be applied in light of counsel’s advice. [COUNSEL TO DEFINE THE INTERNAL THRESHOLD — for example, how many valid, uncountered notices, over what period, count as repeat infringement. This draft does not invent a “three-strikes” number.]
+- The phrase “repeat infringers” (17 U.S.C. § 512(i)) and “appropriate circumstances” will be applied in light of counsel’s advice. [COUNSEL TO DEFINE THE INTERNAL THRESHOLD — for example, how many valid, uncountered notices, over what period, count as repeat infringement. This draft does not invent a “three-strikes” number.]
 - We may terminate sooner when circumstances are serious (for example, clear posting of an entire in-copyright book, or notices that show a pattern of knowing infringement).
 - A termination decision is made by [JACQUELINE / COUNSEL / NAMED ROLE], not by an automated score alone.
 - We will inform members of this policy by posting it here and by referring to it in the Terms of Use.

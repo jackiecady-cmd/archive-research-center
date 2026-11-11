@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SourceTypeBadge, ConfidenceBadge, AvailabilityBadge, RepositoryAccessBadge } from "@/components/source-badges";
 import { TranslationDisclosure } from "@/components/translation-disclosure";
+import { isCitationOnly } from "@workspace/config/legal";
 import { Search, SlidersHorizontal, BookOpen, Clock, FileText, X, Info, RotateCcw, Building2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -331,10 +332,24 @@ export function ArchivePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pb-4">
-                  <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                    {source.excerpt || source.description || "No excerpt available."}
-                  </p>
-                  {source.excerpt ? <div className="mt-3"><TranslationDisclosure /></div> : null}
+                  {isCitationOnly(source) ? (
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Citation and link only.
+                      {source.externalUrl ? (
+                        <>
+                          {" "}
+                          <a href={source.externalUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">Open the holding</a>
+                        </>
+                      ) : null}
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                        {source.excerpt || source.description || "No excerpt available."}
+                      </p>
+                      {source.excerpt ? <div className="mt-3"><TranslationDisclosure /></div> : null}
+                    </>
+                  )}
                 </CardContent>
                 <CardFooter className="bg-secondary/20 border-t border-border/50 py-3 text-xs text-muted-foreground flex flex-wrap gap-4 items-center">
                   {source.author && (

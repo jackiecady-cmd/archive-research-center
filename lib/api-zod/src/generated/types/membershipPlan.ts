@@ -5,13 +5,10 @@
  * Archive & Research Center API
  * OpenAPI spec version: 0.1.0
  */
-import type { MembershipPlanBillingPeriod } from './membershipPlanBillingPeriod';
 
 export interface MembershipPlan {
   id: string;
   name: string;
-  billingPeriod: MembershipPlanBillingPeriod;
-  priceUsd: number;
   features: string[];
   recommended?: boolean;
 }

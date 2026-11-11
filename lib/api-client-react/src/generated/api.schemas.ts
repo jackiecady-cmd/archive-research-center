@@ -150,7 +150,7 @@ export interface Source {
   description?: string | null;
   /** @nullable */
   excerpt?: string | null;
-  /** Public translation disclosure. Wording is TRANSLATION_DISCLOSURE in @workspace/config and is pending legal review. Do not put a model or provider name in this field. */
+  /** Public translation disclosure. The wording is TRANSLATION_DISCLOSURE in @workspace/config, approved in legal review on Nov 11, 2026. Do not put a model or provider name in this field. */
   translationDisclosure: string;
   /** @nullable */
   originalLanguageText?: string | null;
@@ -532,19 +532,9 @@ export interface ForumActivity {
   recentReplies: ForumReply[];
 }
 
-export type MembershipPlanBillingPeriod = typeof MembershipPlanBillingPeriod[keyof typeof MembershipPlanBillingPeriod];
-
-
-export const MembershipPlanBillingPeriod = {
-  monthly: 'monthly',
-  annual: 'annual',
-} as const;
-
 export interface MembershipPlan {
   id: string;
   name: string;
-  billingPeriod: MembershipPlanBillingPeriod;
-  priceUsd: number;
   features: string[];
   recommended?: boolean;
 }

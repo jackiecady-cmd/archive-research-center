@@ -142,5 +142,5 @@ Copyright notices: see the Copyright and DMCA Policy.
 ### Drafting notes (not part of the public terms)
 
 - Statute and process sources used while preparing related drafts are collected in `copyright-dmca-policy.md` and `attorney-packet/README.md`.
-- Fee amounts are omitted on purpose. Jacqueline has said a schedule exists in a Grok conversation and has not pasted it here.
+- Fee amounts are omitted on purpose until the owner supplies the fee schedule.
 - This draft does not try to characterize the service as “noncommercial” for purposes of third-party licences. That is counsel’s Question 3.

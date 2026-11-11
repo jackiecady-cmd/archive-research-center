@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { after, before, test } from "node:test";
@@ -13,6 +13,7 @@ import {
   legalPagesLive,
   readRetention,
   retentionWarnings,
+  stripNonPublicSections,
 } from "@workspace/config/legal";
 import { db, pool, sourcesTable, usersTable } from "@workspace/db";
 import app from "../src/app.ts";
@@ -138,6 +139,19 @@ test("bracketed legal drafts stay unpublished and retention periods are not inve
   assert.equal(seed.includes("cdli.ucla.edu"), false);
   assert.equal(/https?:\/\/\S+\.(?:jpg|jpeg|png|gif|webp)/i.test(seed), false);
   assert.equal(seed.includes('repositoryAccessStatus: "catalog_only"'), true);
+  assert.equal(seed.includes("archives.gov/research/census/1880"), false);
+  assert.equal(seed.includes('slug: "census"'), false);
+  const termsFile = readFileSync(path.join(root, "legal/terms-of-use.md"), "utf8");
+  assert.equal(termsFile.includes("Fee amounts are omitted on purpose until the owner supplies the fee schedule."), true);
+  assert.equal(termsFile.includes("Grok conversation"), false);
+  assert.equal(stripNonPublicSections(termsFile).includes("Drafting notes"), false);
+  assert.equal(stripNonPublicSections(termsFile).includes("attorney-packet"), false);
+  const html = readFileSync(path.join(root, "artifacts/archive-research-center/index.html"), "utf8");
+  const css = readFileSync(path.join(root, "artifacts/archive-research-center/src/index.css"), "utf8");
+  assert.equal(html.includes("fonts.googleapis.com"), false);
+  assert.equal(html.includes("fonts.gstatic.com"), false);
+  assert.equal(css.includes("fonts.googleapis.com"), false);
+  assert.equal(css.includes("fonts.gstatic.com"), false);
   const workspace = readFileSync(path.join(root, "artifacts/archive-research-center/src/pages/translation-workspace.tsx"), "utf8");
   assert.match(workspace, /payload\.citationOnly \|\| citationOnly/);
   const footer = readFileSync(path.join(root, "artifacts/archive-research-center/src/components/site-footer.tsx"), "utf8");
@@ -217,6 +231,16 @@ test("legal pages and citation-only export follow the public gate", async () => 
     tags: [],
   }).returning();
 
+  const restrictedDetail = await request("GET", `/api/sources/${restricted.id}`);
+  const restrictedRecord = restrictedDetail.json as { excerpt: string | null; originalLanguageText: string | null };
+  assert.equal(restrictedRecord.excerpt, null);
+  assert.equal(restrictedRecord.originalLanguageText, null);
+  const catalog = await request("GET", "/api/sources");
+  const catalogItems = (catalog.json as { items: { id: number; excerpt: string | null; originalLanguageText: string | null }[] }).items;
+  const listedRestricted = catalogItems.find((item) => item.id === restricted.id);
+  assert.equal(listedRestricted?.excerpt, null);
+  assert.equal(listedRestricted?.originalLanguageText, null);
+
   const restrictedExport = await request("GET", `/api/sources/${restricted.id}/export`);
   assert.equal(restrictedExport.status, 200);
   const restrictedJson = restrictedExport.json as { citationOnly: boolean; externalUrl: string | null };
@@ -234,12 +258,43 @@ test("legal pages and citation-only export follow the public gate", async () => 
   const licensedBody = licensedSource.json as { excerpt: string | null; originalLanguageText: string | null };
   assert.equal(licensedBody.excerpt, null);
   assert.equal(licensedBody.originalLanguageText, null);
+  const catalogAfter = await request("GET", "/api/sources");
+  const listedLicensed = (catalogAfter.json as { items: { id: number; excerpt: string | null; originalLanguageText: string | null }[] }).items
+    .find((item) => item.id === licensed.id);
+  assert.equal(listedLicensed?.excerpt, null);
+  assert.equal(listedLicensed?.originalLanguageText, null);
   const licensedExport = await request("GET", `/api/sources/${licensed.id}/export`);
   assert.equal((licensedExport.json as { citationOnly: boolean }).citationOnly, true);
   assert.equal(JSON.stringify(licensedExport.json).includes("CDLI FULL"), false);
 
   const plans = await request("GET", "/api/membership/plans");
-  assert.equal(/vatican|license-restricted|restricted holdings/i.test(JSON.stringify(plans.json)), false);
-  const subscribe = await request("POST", "/api/membership/subscribe", { cookie: admin, body: { planId: "scholar-monthly" } });
+  const plansText = JSON.stringify(plans.json);
+  assert.equal(/vatican|license-restricted|restricted holdings/i.test(plansText), false);
+  assert.equal(plansText.includes("priceUsd"), false);
+  assert.equal(plansText.includes("price"), false);
+  assert.equal(/\$\d/.test(plansText), false);
+  assert.equal(plansText.includes("Early access to new collections"), false);
+  const subscribe = await request("POST", "/api/membership/subscribe", { cookie: admin, body: { planId: "scholar" } });
   assert.equal(subscribe.status, 501);
+
+  const noticesPath = path.join(root, "legal/open-source-notices.md");
+  const originalNotices = readFileSync(noticesPath, "utf8");
+  try {
+    writeFileSync(noticesPath, `${originalNotices}\n### Drafting notes\n\nSECRET DRAFTING NOTE\n`);
+    process.env.LEGAL_PAGES_LIVE = "1";
+    const publicNotices = await request("GET", "/api/legal/pages/open-source");
+    assert.equal(publicNotices.status, 200);
+    assert.equal(JSON.stringify(publicNotices.json).includes("SECRET DRAFTING NOTE"), false);
+    assert.equal(JSON.stringify(publicNotices.json).includes("Drafting notes"), false);
+    const adminNotices = await request("GET", "/api/legal/pages/open-source", { cookie: admin });
+    assert.equal(JSON.stringify(adminNotices.json).includes("SECRET DRAFTING NOTE"), true);
+  } finally {
+    writeFileSync(noticesPath, originalNotices);
+    delete process.env.LEGAL_PAGES_LIVE;
+  }
+
+  const adminTerms = await request("GET", "/api/legal/pages/terms", { cookie: admin });
+  assert.equal((adminTerms.json as { body: string }).body.includes("Drafting notes"), true);
+  const publicTerms = await request("GET", "/api/legal/pages/terms");
+  assert.equal(publicTerms.status, 404);
 });

@@ -21,6 +21,7 @@ const REMOVED_SOURCE_TITLES = [
   "Parish Register of St Bride's, Fleet Street — Baptismal Entries 1653–1700",
   "England & Wales Census 1911 — Individual Household Returns",
   "Swedish Household Examination Records (Husförhörslängder) 1800–1895",
+  "United States Federal Census 1880 — Full Population Schedule",
 ];
 
 // ── Collections ───────────────────────────────────────────────────────────────
@@ -43,15 +44,6 @@ const COLLECTIONS = [
       "Biblical manuscripts, church fathers, rabbinic texts, and Second Temple period writings held in institutional and digital collections.",
     iconLabel: "✝",
     featured: true,
-  },
-  {
-    name: "Census & Population Registers",
-    slug: "census",
-    subject: "Demographic and social history",
-    description:
-      "National census schedules, tax rolls, and household registers from the 19th and early 20th centuries.",
-    iconLabel: "📊",
-    featured: false,
   },
   {
     name: "Numismatic & Epigraphic Evidence",
@@ -276,30 +268,6 @@ const SOURCES = [
     yearApprox: 313,
   },
 
-  // ── Census & Population Registers ────────────────────────────────────────
-
-  {
-    title: "United States Federal Census 1880 — Full Population Schedule",
-    sourceType: "primary",
-    collectionSlug: "census",
-    author: "United States Bureau of the Census",
-    dateLabel: "June 1880",
-    language: "English",
-    provenance:
-      "Original schedules held at the National Archives and Records Administration (NARA), Record Group 29. Microfilm publication T9.",
-    confidence: "high",
-    availability: "public_domain",
-    rightsStatement:
-      "Original government records in the public domain.",
-    description:
-      "The 1880 U.S. Federal Census is the first to record the relationship of each household member to the head of household. It also records parents' birthplaces, which historians use to study immigration and household structure.",
-    excerpt:
-      "Schedule fields: name, relationship to head, sex, race, age, marital status, occupation, birthplace, father's birthplace, mother's birthplace. Disability and illness columns also recorded.",
-    externalUrl: "https://www.archives.gov/research/census/1880",
-    tags: ["US Census", "1880", "immigration", "household records"],
-    yearApprox: 1880,
-  },
-
   // ── Numismatic & Epigraphic Evidence ─────────────────────────────────────
 
   {
@@ -501,6 +469,7 @@ async function seed() {
   }
 
   await db.delete(collectionsTable).where(eq(collectionsTable.slug, "parish-civil"));
+  await db.delete(collectionsTable).where(eq(collectionsTable.slug, "census"));
 
   // Upsert sources (keyed by title — safe for a demo dataset)
   for (const src of SOURCES) {

@@ -271,12 +271,8 @@ export function TranslationWorkspacePage() {
   useEffect(() => {
     if (!source || !initializedRef.current) return;
     setLayers((prev) => {
-      if (prev.originalText.trim()) return prev;
-      const prefill =
-        source.originalLanguageText?.trim() ||
-        source.excerpt?.trim() ||
-        source.description?.trim() ||
-        "";
+      if (prev.originalText.trim() || isCitationOnly(source)) return prev;
+      const prefill = source.originalLanguageText?.trim() || source.excerpt?.trim() || "";
       return { ...prev, originalText: prefill };
     });
   }, [source, loadingWorkspace]);

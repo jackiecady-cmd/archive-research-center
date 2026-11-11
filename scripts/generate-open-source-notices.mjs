@@ -1,4 +1,5 @@
-import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -12,6 +13,65 @@ function walk(dir, found = []) {
     else if (name === "package.json") found.push(full);
   }
   return found;
+}
+
+const requirers = [
+  "package.json",
+  "artifacts/api-server/package.json",
+  "artifacts/archive-research-center/package.json",
+  "lib/db/package.json",
+  "lib/api-zod/package.json",
+  "lib/api-client-react/package.json",
+  "lib/api-spec/package.json",
+  "lib/config/package.json",
+].map((file) => createRequire(path.join(root, file)));
+
+function licenseField(manifest) {
+  if (typeof manifest.license === "string" && manifest.license.trim()) return manifest.license.trim();
+  if (manifest.license && typeof manifest.license.type === "string") return manifest.license.type;
+  if (Array.isArray(manifest.licenses) && manifest.licenses.length > 0) {
+    return manifest.licenses.map((item) => item.type ?? item).join(" OR ");
+  }
+  return null;
+}
+
+function licenseFor(name) {
+  const direct = [
+    path.join(root, "node_modules", name, "package.json"),
+    path.join(root, "artifacts/api-server/node_modules", name, "package.json"),
+    path.join(root, "artifacts/archive-research-center/node_modules", name, "package.json"),
+    path.join(root, "lib/db/node_modules", name, "package.json"),
+    path.join(root, "lib/api-zod/node_modules", name, "package.json"),
+    path.join(root, "lib/api-client-react/node_modules", name, "package.json"),
+    path.join(root, "lib/api-spec/node_modules", name, "package.json"),
+    path.join(root, "lib/config/node_modules", name, "package.json"),
+  ];
+  for (const pkgPath of direct) {
+    if (!existsSync(pkgPath)) continue;
+    const license = licenseField(JSON.parse(readFileSync(pkgPath, "utf8")));
+    if (license) return license;
+  }
+  for (const req of requirers) {
+    try {
+      let dir = path.dirname(req.resolve(name));
+      for (let depth = 0; depth < 6; depth += 1) {
+        const pkgPath = path.join(dir, "package.json");
+        if (existsSync(pkgPath)) {
+          const manifest = JSON.parse(readFileSync(pkgPath, "utf8"));
+          if (manifest.name === name) {
+            const license = licenseField(manifest);
+            if (license) return license;
+          }
+        }
+        const parent = path.dirname(dir);
+        if (parent === dir) break;
+        dir = parent;
+      }
+    } catch {
+      // This workspace package does not depend on the name.
+    }
+  }
+  return "license not recorded in the installed package";
 }
 
 const packages = new Map();
@@ -38,7 +98,7 @@ const lines = [
   "- Inter, SIL Open Font License",
   "- Playfair Display, SIL Open Font License",
   "",
-  "The site currently loads both families from Google Fonts (`fonts.googleapis.com` and `fonts.gstatic.com`). The font software itself is under the SIL Open Font License.",
+  "Both families are stored in this repository under the SIL Open Font License and are served from the same origin.",
   "",
   "## npm dependencies",
   "",
@@ -48,7 +108,7 @@ const lines = [
 
 for (const name of [...packages.keys()].sort((a, b) => a.localeCompare(b))) {
   const versions = [...packages.get(name)].sort().join(", ");
-  lines.push(`- ${name} (${versions})`);
+  lines.push(`- ${name} (${versions}) — ${licenseFor(name)}`);
 }
 lines.push("");
 

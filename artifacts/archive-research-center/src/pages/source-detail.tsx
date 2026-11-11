@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { SourceTypeBadge, ConfidenceBadge, AvailabilityBadge, RepositoryAccessBadge } from "@/components/source-badges";
 import { TranslationDisclosure } from "@/components/translation-disclosure";
+import { isCitationOnly } from "@workspace/config/legal";
 import {
   ExternalLink, BookmarkPlus, ArrowLeft, Building2, Quote,
   AlertTriangle, Languages, Pencil, Check, X,
@@ -122,16 +123,33 @@ export function SourceDetailPage() {
               <Quote className="h-5 w-5 text-muted-foreground" />
               Excerpt / Description
             </h3>
-            {source.excerpt ? <TranslationDisclosure /> : null}
-            <div className="prose prose-stone dark:prose-invert max-w-none">
-              <p className="text-lg leading-relaxed text-foreground/90 font-serif">
-                {source.excerpt || source.description}
+            {isCitationOnly(source) ? (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Citation and link only. The source text is not shown here.
+                {source.externalUrl ? (
+                  <>
+                    {" "}
+                    <a href={source.externalUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+                      Open the holding
+                    </a>
+                  </>
+                ) : null}
               </p>
-            </div>
+            ) : (
+              <>
+                {source.excerpt ? <TranslationDisclosure /> : null}
+                <div className="prose prose-stone dark:prose-invert max-w-none">
+                  <p className="text-lg leading-relaxed text-foreground/90 font-serif">
+                    {source.excerpt || source.description}
+                  </p>
+                </div>
+              </>
+            )}
           </section>
 
-          {/* Original-language text: display + editor panel */}
-          <OriginalLanguageSection source={source} isEditor={isEditor} sourceId={id} />
+          {isCitationOnly(source) ? null : (
+            <OriginalLanguageSection source={source} isEditor={isEditor} sourceId={id} />
+          )}
 
           <section>
             <h3 className="text-xl font-serif mb-4 flex items-center gap-2">
