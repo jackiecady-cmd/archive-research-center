@@ -15,8 +15,10 @@ import {
   retentionWarnings,
   stripNonPublicSections,
 } from "@workspace/config/legal";
-import { db, pool, sourcesTable, usersTable } from "@workspace/db";
+import { db, pool, sourcesTable, translationsTable, usersTable } from "@workspace/db";
 import app from "../src/app.ts";
+import { clearPrefilledCitationSourceText } from "../src/lib/clear-citation-prefill.ts";
+import { prefillOriginalText, withoutPrefilledSourceText } from "../../archive-research-center/src/lib/workspace-prefill.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 let server: http.Server;
@@ -63,6 +65,7 @@ before(async () => {
   );
   await db.execute(sql`
     TRUNCATE TABLE
+      maintenance_markers,
       comp_code_incident_reads,
       comp_code_incidents,
       moderation_events,
@@ -146,13 +149,31 @@ test("bracketed legal drafts stay unpublished and retention periods are not inve
   assert.equal(termsFile.includes("Grok conversation"), false);
   assert.equal(stripNonPublicSections(termsFile).includes("Drafting notes"), false);
   assert.equal(stripNonPublicSections(termsFile).includes("attorney-packet"), false);
+  const withLaterSection = "# Terms\n\nPublic body.\n\n### Drafting notes\n\nsecret\n\n## Later section\n\nshould be removed\n";
+  const stripped = stripNonPublicSections(withLaterSection);
+  assert.equal(stripped.includes("Public body."), true);
+  assert.equal(stripped.includes("Later section"), false);
+  assert.equal(stripped.includes("should be removed"), false);
+  const stripSource = readFileSync(path.join(root, "lib/config/src/legal.ts"), "utf8");
+  assert.match(stripSource, /must be the last section/);
+  assert.equal(prefillOriginalText({ availability: "restricted", excerpt: "SECRET PHRASE", originalLanguageText: "SECRET SOURCE" }, ""), "");
+  assert.equal(prefillOriginalText({ availability: "public_domain", excerpt: "Open sentence" }, ""), "Open sentence");
+  assert.equal(prefillOriginalText({ availability: "restricted", excerpt: "SECRET PHRASE" }, "My own note"), "My own note");
+  const kept = withoutPrefilledSourceText(
+    { layers: { originalText: "SECRET PHRASE", commentary: "My commentary", literalTranslation: "My translation" }, translationId: 4 },
+    ["SECRET PHRASE"],
+  );
+  assert.equal(kept.layers?.originalText, "");
+  assert.equal(kept.layers?.commentary, "My commentary");
+  assert.equal(kept.layers?.literalTranslation, "My translation");
+  const workspace = readFileSync(path.join(root, "artifacts/archive-research-center/src/pages/translation-workspace.tsx"), "utf8");
+  assert.match(workspace, /prefillOriginalText/);
   const html = readFileSync(path.join(root, "artifacts/archive-research-center/index.html"), "utf8");
   const css = readFileSync(path.join(root, "artifacts/archive-research-center/src/index.css"), "utf8");
   assert.equal(html.includes("fonts.googleapis.com"), false);
   assert.equal(html.includes("fonts.gstatic.com"), false);
   assert.equal(css.includes("fonts.googleapis.com"), false);
   assert.equal(css.includes("fonts.gstatic.com"), false);
-  const workspace = readFileSync(path.join(root, "artifacts/archive-research-center/src/pages/translation-workspace.tsx"), "utf8");
   assert.match(workspace, /payload\.citationOnly \|\| citationOnly/);
   const footer = readFileSync(path.join(root, "artifacts/archive-research-center/src/components/site-footer.tsx"), "utf8");
   assert.match(footer, /TRANSLATION_DISCLOSURE/);
@@ -266,6 +287,40 @@ test("legal pages and citation-only export follow the public gate", async () => 
   const licensedExport = await request("GET", `/api/sources/${licensed.id}/export`);
   assert.equal((licensedExport.json as { citationOnly: boolean }).citationOnly, true);
   assert.equal(JSON.stringify(licensedExport.json).includes("CDLI FULL"), false);
+
+  const hiddenSearch = await request("GET", `/api/sources?q=${encodeURIComponent("FULL TEXT LINE THAT MUST NOT BE EXPORTED")}`);
+  const hiddenItems = (hiddenSearch.json as { items: { id: number }[] }).items;
+  assert.equal(hiddenItems.some((item) => item.id === restricted.id), false);
+  const titleSearch = await request("GET", "/api/sources?q=Restricted%20holding");
+  assert.equal((titleSearch.json as { items: { id: number }[] }).items.some((item) => item.id === restricted.id), true);
+  const openSearch = await request("GET", `/api/sources?q=${encodeURIComponent("A public-domain sentence.")}`);
+  assert.equal((openSearch.json as { items: { id: number }[] }).items.some((item) => item.id === open.id), true);
+
+  const me = await request("GET", "/api/auth/me", { cookie: admin });
+  const userId = (me.json as { id: number }).id;
+  await db.insert(translationsTable).values({
+    userId,
+    sourceId: restricted.id,
+    originalText: "FULL TEXT LINE THAT MUST NOT BE EXPORTED",
+    literalTranslation: "The researcher's own note",
+    commentary: "Keep this commentary",
+  });
+  await db.insert(translationsTable).values({
+    userId,
+    sourceId: licensed.id,
+    originalText: "Handwritten by the researcher",
+    userInterpretation: "The researcher's own reading",
+  });
+  const cleared = await clearPrefilledCitationSourceText();
+  assert.equal(cleared, 1);
+  const [restrictedWorkspace] = await db.select().from(translationsTable).where(eq(translationsTable.sourceId, restricted.id));
+  assert.equal(restrictedWorkspace?.originalText, null);
+  assert.equal(restrictedWorkspace?.literalTranslation, "The researcher's own note");
+  assert.equal(restrictedWorkspace?.commentary, "Keep this commentary");
+  const [keptWorkspace] = await db.select().from(translationsTable).where(eq(translationsTable.sourceId, licensed.id));
+  assert.equal(keptWorkspace?.originalText, "Handwritten by the researcher");
+  assert.equal(keptWorkspace?.userInterpretation, "The researcher's own reading");
+  assert.equal(await clearPrefilledCitationSourceText(), 0);
 
   const plans = await request("GET", "/api/membership/plans");
   const plansText = JSON.stringify(plans.json);

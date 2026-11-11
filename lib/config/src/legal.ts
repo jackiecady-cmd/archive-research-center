@@ -25,7 +25,11 @@ export function legalPageIsPublic(text: string, env: Record<string, string | und
   return legalPagesLive(env) && !hasBracketedPlaceholder(text);
 }
 
-/** Drop attorney drafting notes before a page is shown to anyone who is not an administrator. */
+/**
+ * Drop attorney drafting notes before a page is shown to anyone who is not an administrator.
+ * A "Drafting notes" heading must be the last section of a legal page: everything after the
+ * first matching heading is removed, including any later sections.
+ */
 export function stripNonPublicSections(markdown: string): string {
   const pattern = /^#{1,6} .*(?:Drafting notes|not part of the public).*$/im;
   const match = pattern.exec(markdown);
@@ -128,4 +132,34 @@ export function omitOffsiteExcerpt(record: HoldingRecord): boolean {
 export function omitOffsiteImage(record: HoldingRecord): boolean {
   const note = holdingNote(record);
   return /\bcdli\b|cuneiform digital library|cc\s*by-nc|by-nc-sa|non-?commercial/.test(note);
+}
+
+/**
+ * Search may use title and citation fields only.
+ * Excerpt and original-language text stay out of the query so a hit cannot confirm
+ * that a phrase is in a restricted, link-only, CDLI, or CC BY-NC record.
+ * A note that a BY-NC transcription was omitted does not hide the public-domain excerpt.
+ */
+export function hidesSourceTextFromSearch(record: HoldingRecord): boolean {
+  if (isCitationOnly(record)) return true;
+  const note = holdingNote(record);
+  if (/\bcdli\b|cuneiform digital library/.test(note)) return true;
+  if (/cc\s*by-nc|by-nc(?:-sa)?/.test(note) && !/omitted|no manuscript image|no image|no photograph|not included/.test(note)) {
+    return true;
+  }
+  return false;
+}
+
+/** Texts that the workspace used to copy into originalText. */
+export function prefilledSourceTexts(record: HoldingRecord): string[] {
+  return [record.originalLanguageText, record.excerpt, record.description]
+    .map((value) => value?.trim() ?? "")
+    .filter((value) => value.length > 0);
+}
+
+export function isPrefilledSourceText(record: HoldingRecord, text: string): boolean {
+  if (!hidesSourceTextFromSearch(record)) return false;
+  const trimmed = text.trim();
+  if (!trimmed) return false;
+  return prefilledSourceTexts(record).includes(trimmed);
 }

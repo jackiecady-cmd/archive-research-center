@@ -29,7 +29,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { buildPrintDocument } from "@/lib/print-html";
 import { TRANSLATION_DISCLOSURE } from "@workspace/config";
-import { isCitationOnly } from "@workspace/config/legal";
+import { isCitationOnly, hidesSourceTextFromSearch } from "@workspace/config/legal";
+import { prefillOriginalText, withoutPrefilledSourceText } from "@/lib/workspace-prefill";
 import { ConfidenceBadge, SourceTypeBadge } from "@/components/source-badges";
 import { TranslationDisclosure } from "@/components/translation-disclosure";
 import {
@@ -267,15 +268,42 @@ export function TranslationWorkspacePage() {
       });
   }, [sourceId, user]);
 
-  // Pre-fill Original Text — prefer dedicated original-script field, fall back to excerpt
+  // Pre-fill Original Text only for records whose source text is public.
+  // Citation-only, CDLI, and CC BY-NC records keep the researcher's own layers and do not copy hidden text.
   useEffect(() => {
     if (!source || !initializedRef.current) return;
+    const hidden = isCitationOnly(source) || hidesSourceTextFromSearch(source);
+    if (!hidden) {
+      setLayers((prev) => ({ ...prev, originalText: prefillOriginalText(source, prev.originalText) }));
+      return;
+    }
+    let cancelled = false;
     setLayers((prev) => {
-      if (prev.originalText.trim() || isCitationOnly(source)) return prev;
-      const prefill = source.originalLanguageText?.trim() || source.excerpt?.trim() || "";
-      return { ...prev, originalText: prefill };
+      const text = prev.originalText.trim();
+      if (!text) return prev;
+      void fetch("/api/translations/prefill-check", {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ sourceId, originalText: text }),
+      })
+        .then(async (response) => (response.ok ? response.json() : null))
+        .then((body: { clear?: boolean } | null) => {
+          if (cancelled || !body?.clear || !user) return;
+          setLayers((current) => (
+            current.originalText.trim() === text ? { ...current, originalText: "" } : current
+          ));
+          const storageKey = storageKeyFor(user.id, sourceId);
+          const cached = localStorage.getItem(storageKey);
+          if (!cached) return;
+          const parsed = JSON.parse(cached) as { layers?: { originalText?: string } };
+          localStorage.setItem(storageKey, JSON.stringify(withoutPrefilledSourceText(parsed, [text])));
+        })
+        .catch(() => undefined);
+      return prev;
     });
-  }, [source, loadingWorkspace]);
+    return () => { cancelled = true; };
+  }, [source, loadingWorkspace, sourceId, user]);
 
   // Auto-save to API + localStorage whenever debounced layers change
   useEffect(() => {

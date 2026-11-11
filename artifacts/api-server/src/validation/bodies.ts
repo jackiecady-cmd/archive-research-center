@@ -22,6 +22,11 @@ export const incidentResolveBody = z.object({
   status: z.enum(["reviewed", "dismissed"]),
 });
 
+export const prefillCheckBody = z.object({
+  sourceId: z.number().int().positive(),
+  originalText: z.string().max(20_000),
+});
+
 export const serviceAccountBody = z.object({
   email: z.email().trim().max(200),
   displayName: z.string().trim().min(1).max(80),

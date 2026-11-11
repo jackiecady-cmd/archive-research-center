@@ -3,9 +3,11 @@ import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { db, translationsTable, sourcesTable } from "@workspace/db";
 import { CreateTranslationBody, UpdateTranslationBody } from "@workspace/api-zod";
 import { TRANSLATION_DISCLOSURE } from "@workspace/config";
+import { isPrefilledSourceText } from "@workspace/config/legal";
 import { currentUser } from "../auth/middleware";
 import { parseIntParam, sendValidationError } from "../lib/http";
 import { likeContains, parseListLimit } from "../lib/security";
+import { prefillCheckBody } from "../validation/bodies";
 
 const router = Router();
 
@@ -50,6 +52,15 @@ function formatTranslation(row: TRow) {
 function hasContent() {
   return or(...LAYER_COLUMNS.map((column) => sql`length(btrim(coalesce(${column}, ''))) > 0`));
 }
+
+router.post("/translations/prefill-check", async (req, res): Promise<void> => {
+  const user = currentUser(req);
+  if (!user) { res.status(401).json({ error: "Authentication required" }); return; }
+  const parsed = prefillCheckBody.safeParse(req.body);
+  if (!parsed.success) { sendValidationError(res, parsed.error); return; }
+  const [source] = await db.select().from(sourcesTable).where(eq(sourcesTable.id, parsed.data.sourceId));
+  res.json({ clear: source ? isPrefilledSourceText(source, parsed.data.originalText) : false });
+});
 
 router.get("/translations/workspaces", async (req, res): Promise<void> => {
   const user = currentUser(req);

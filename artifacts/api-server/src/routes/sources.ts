@@ -78,15 +78,34 @@ router.get("/sources", async (req, res): Promise<void> => {
 
   const conditions = [];
 
-  // Full-text search across title, description, and excerpt (OR logic)
+  // Citation-only, CDLI, and CC BY-NC records match title and citation fields only.
+  // Excerpt and original-language text are not searchable, so a hit cannot confirm hidden text.
   if (q) {
     const pattern = likeContains(q);
+    const note = sql`lower(concat_ws(' ', ${sourcesTable.rightsStatement}, ${sourcesTable.description}, ${sourcesTable.provenance}, ${sourcesTable.externalUrl}))`;
+    const hiddenSourceText = sql`(
+      lower(replace(coalesce(${sourcesTable.availability}, ''), '_', '-')) in ('restricted', 'blocked', 'catalog-only', 'reference-only', 'link-only')
+      OR lower(replace(coalesce(${sourcesTable.repositoryAccessStatus}, ''), '_', '-')) in ('restricted', 'blocked', 'catalog-only', 'reference-only', 'link-only')
+      OR ${note} ~ 'link-only|reference-only|catalogue reference only|catalog reference only|catalog-only|catalogue-only|\\mcdli\\M|cuneiform digital library'
+      OR (${note} ~ 'cc[[:space:]]*by-nc|by-nc' AND ${note} !~ 'omitted|no manuscript image|no image|no photograph|not included')
+    )`;
     conditions.push(
       or(
         ilike(sourcesTable.title, pattern),
-        ilike(sourcesTable.description, pattern),
-        ilike(sourcesTable.excerpt, pattern),
-      )!
+        ilike(sourcesTable.author, pattern),
+        ilike(sourcesTable.dateLabel, pattern),
+        ilike(sourcesTable.provenance, pattern),
+        ilike(sourcesTable.rightsStatement, pattern),
+        ilike(sourcesTable.externalUrl, pattern),
+        and(
+          sql`NOT ${hiddenSourceText}`,
+          or(
+            ilike(sourcesTable.description, pattern),
+            ilike(sourcesTable.excerpt, pattern),
+            ilike(sourcesTable.originalLanguageText, pattern),
+          ),
+        ),
+      )!,
     );
   }
 

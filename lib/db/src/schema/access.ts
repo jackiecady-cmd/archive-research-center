@@ -132,6 +132,12 @@ export const serviceTokensTable = pgTable("service_tokens", {
 
 export type ServiceToken = typeof serviceTokensTable.$inferSelect;
 
+/** One row per completed one-time maintenance task. The name is the idempotency marker. */
+export const maintenanceMarkersTable = pgTable("maintenance_markers", {
+  name: text("name").primaryKey(),
+  completedAt: timestamp("completed_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const moderationEventsTable = pgTable("moderation_events", {
   id: serial("id").primaryKey(),
   actorUserId: integer("actor_user_id")
