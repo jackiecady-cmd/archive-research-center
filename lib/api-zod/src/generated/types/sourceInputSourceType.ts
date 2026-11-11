@@ -14,6 +14,5 @@ export const SourceInputSourceType = {
   translation: 'translation',
   scholarship: 'scholarship',
   interpretation: 'interpretation',
-  ai_assistance: 'ai_assistance',
   conclusion: 'conclusion',
 } as const;

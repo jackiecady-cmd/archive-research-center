@@ -10,6 +10,7 @@ import { currentUser } from "../auth/middleware";
 import { ownedBy, whereAll } from "../auth/ownership";
 import type { SessionUser } from "../auth/session";
 import { parseIntParam, sendValidationError } from "../lib/http";
+import { publicSourceType } from "../lib/source-type";
 
 const router = Router();
 
@@ -63,7 +64,7 @@ async function formatEvidence(row: typeof evidenceTable.$inferSelect) {
     claimCardId: row.claimCardId,
     sourceId: row.sourceId,
     source: src ? {
-      id: src.id, title: src.title, sourceType: src.sourceType,
+      id: src.id, title: src.title, sourceType: publicSourceType(src.sourceType),
       collectionSlug: src.collectionSlug ?? null, collectionName: null,
       author: src.author ?? null, dateLabel: src.dateLabel ?? null,
       language: src.language ?? null, originalLanguage: src.originalLanguage ?? null,

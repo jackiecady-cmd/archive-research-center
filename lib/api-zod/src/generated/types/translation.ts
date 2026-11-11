@@ -27,8 +27,6 @@ export interface Translation {
   commentary?: string | null;
   /** @nullable */
   userInterpretation?: string | null;
-  /** @nullable */
-  aiAssistance?: string | null;
   createdAt: string;
   updatedAt: string;
 }

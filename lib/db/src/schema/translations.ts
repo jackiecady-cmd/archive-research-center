@@ -13,8 +13,8 @@ import { sourcesTable } from "./sources";
 
 /**
  * Translation workspace records — one row per (researcher × source).
- * Each field is a distinct epistemic layer. Layers must never be merged
- * in the UI; AI-generated content must carry an explicit disclaimer.
+ * Each field is a distinct epistemic layer. Layers stay separate in the UI.
+ * The workspace holds human-verified text only.
  */
 export const translationsTable = pgTable(
   "translations",
@@ -43,9 +43,6 @@ export const translationsTable = pgTable(
   // ── Interpretive layers ────────────────────────────────────────────────
   commentary: text("commentary"),
   userInterpretation: text("user_interpretation"),
-
-  // ── AI Assistance (never source evidence) ─────────────────────────────
-  aiAssistance: text("ai_assistance"),
 
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

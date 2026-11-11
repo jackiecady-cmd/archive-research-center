@@ -11,7 +11,7 @@ const router = Router();
 const LAYER_FIELDS = [
   "originalText", "transliteration", "morphologyNotes",
   "literalTranslation", "readableTranslation", "publishedTranslation",
-  "commentary", "userInterpretation", "aiAssistance",
+  "commentary", "userInterpretation",
 ] as const;
 
 const LAYER_COLUMNS = [
@@ -23,7 +23,6 @@ const LAYER_COLUMNS = [
   translationsTable.publishedTranslation,
   translationsTable.commentary,
   translationsTable.userInterpretation,
-  translationsTable.aiAssistance,
 ] as const;
 
 type TRow = typeof translationsTable.$inferSelect;
@@ -41,7 +40,6 @@ function formatTranslation(row: TRow) {
     publishedTranslationAttribution: row.publishedTranslationAttribution ?? null,
     commentary: row.commentary ?? null,
     userInterpretation: row.userInterpretation ?? null,
-    aiAssistance: row.aiAssistance ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

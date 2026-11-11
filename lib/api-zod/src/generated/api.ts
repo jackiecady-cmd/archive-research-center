@@ -111,7 +111,7 @@ export const ListSourcesResponse = zod.object({
   "items": zod.array(zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -155,7 +155,7 @@ export const createSourceBodyTagsMax = 50;
 
 export const CreateSourceBody = zod.object({
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().optional(),
   "repositoryId": zod.number().optional(),
   "repositoryAccessStatus": zod.enum(['digitized', 'catalog_only', 'restricted', 'physical_access_required']).optional(),
@@ -184,7 +184,7 @@ export const createSourceResponseTagsMax = 50;
 export const CreateSourceResponse = zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -229,7 +229,7 @@ export const getSourceResponseTagsMax = 50;
 export const GetSourceResponse = zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -283,7 +283,7 @@ export const updateSourceResponseTagsMax = 50;
 export const UpdateSourceResponse = zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -381,7 +381,7 @@ export const GetCollectionResponse = zod.object({
   "sources": zod.array(zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -452,7 +452,7 @@ export const GetRepositoryResponse = zod.object({
   "sources": zod.array(zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -553,7 +553,7 @@ export const GetResearchProjectResponse = zod.object({
   "source": zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -660,7 +660,7 @@ export const ListSavedSourcesResponseItem = zod.object({
   "source": zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -718,7 +718,7 @@ export const SaveSourceResponse = zod.object({
   "source": zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -952,7 +952,7 @@ export const GetEvidenceTrailResponse = zod.object({
   "source": zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -1007,7 +1007,7 @@ export const ListEvidenceResponseItem = zod.object({
   "source": zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -1067,7 +1067,7 @@ export const AddEvidenceResponse = zod.object({
   "source": zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -1372,7 +1372,7 @@ export const GetRecommendationResponse = zod.object({
   "suggestedSources": zod.array(zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'ai_assistance', 'conclusion']),
+  "sourceType": zod.enum(['primary', 'translation', 'scholarship', 'interpretation', 'conclusion']),
   "collectionSlug": zod.string().nullable(),
   "collectionName": zod.string().nullish(),
   "repository": zod.union([zod.object({
@@ -1435,7 +1435,6 @@ export const GetTranslationResponse = zod.object({
   "publishedTranslationAttribution": zod.string().nullish(),
   "commentary": zod.string().nullish(),
   "userInterpretation": zod.string().nullish(),
-  "aiAssistance": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -1463,7 +1462,6 @@ export const CreateTranslationResponse = zod.object({
   "publishedTranslationAttribution": zod.string().nullish(),
   "commentary": zod.string().nullish(),
   "userInterpretation": zod.string().nullish(),
-  "aiAssistance": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -1512,8 +1510,7 @@ export const UpdateTranslationBody = zod.object({
   "publishedTranslation": zod.string().optional(),
   "publishedTranslationAttribution": zod.string().optional(),
   "commentary": zod.string().optional(),
-  "userInterpretation": zod.string().optional(),
-  "aiAssistance": zod.string().optional()
+  "userInterpretation": zod.string().optional()
 })
 
 export const UpdateTranslationResponse = zod.object({
@@ -1528,7 +1525,6 @@ export const UpdateTranslationResponse = zod.object({
   "publishedTranslationAttribution": zod.string().nullish(),
   "commentary": zod.string().nullish(),
   "userInterpretation": zod.string().nullish(),
-  "aiAssistance": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })

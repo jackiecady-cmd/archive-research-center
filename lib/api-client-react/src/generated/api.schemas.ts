@@ -72,7 +72,6 @@ export const SourceSourceType = {
   translation: 'translation',
   scholarship: 'scholarship',
   interpretation: 'interpretation',
-  ai_assistance: 'ai_assistance',
   conclusion: 'conclusion',
 } as const;
 
@@ -168,7 +167,6 @@ export const SourceInputSourceType = {
   translation: 'translation',
   scholarship: 'scholarship',
   interpretation: 'interpretation',
-  ai_assistance: 'ai_assistance',
   conclusion: 'conclusion',
 } as const;
 
@@ -624,8 +622,6 @@ export interface Translation {
   commentary?: string | null;
   /** @nullable */
   userInterpretation?: string | null;
-  /** @nullable */
-  aiAssistance?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -640,7 +636,6 @@ export interface TranslationUpdateInput {
   publishedTranslationAttribution?: string;
   commentary?: string;
   userInterpretation?: string;
-  aiAssistance?: string;
 }
 
 export interface TranslationWorkspaceSummary {

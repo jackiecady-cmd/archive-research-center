@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { eq, desc, sql } from "drizzle-orm";
 import { db, collectionsTable, repositoriesTable, sourcesTable } from "@workspace/db";
+import { publicSourceType } from "../lib/source-type";
 
 const router = Router();
 
@@ -53,7 +54,7 @@ router.get("/collections/:slug", async (req, res): Promise<void> => {
     sources: sources.map((s) => ({
       id: s.id,
       title: s.title,
-      sourceType: s.sourceType,
+      sourceType: publicSourceType(s.sourceType),
       collectionSlug: s.collectionSlug ?? null,
       collectionName: col.name,
       repository: s.repositoryId

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { desc, eq, sql } from "drizzle-orm";
 import { db, repositoriesTable, sourcesTable } from "@workspace/db";
+import { publicSourceType } from "../lib/source-type";
 
 const router = Router();
 
@@ -26,7 +27,7 @@ function formatSource(
   return {
     id: source.id,
     title: source.title,
-    sourceType: source.sourceType,
+    sourceType: publicSourceType(source.sourceType),
     collectionSlug: source.collectionSlug ?? null,
     collectionName: null,
     repository: {

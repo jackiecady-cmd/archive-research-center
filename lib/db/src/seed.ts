@@ -3,14 +3,21 @@
  * Run via: pnpm --filter @workspace/db run seed
  *
  * Research-integrity rules preserved throughout:
- *  - FamilySearch sources are labeled as LDS-funded
- *  - No DNAGenics sources (those belong to the Genealogy/DNA page only)
+ *  - Catalog records are historical sources, verified by people
  *  - Confidence grades reflect actual evidentiary basis
  */
 
 import { db, collectionsTable, repositoriesTable, sourcesTable } from "./index.js";
 import { ensureSeedUser } from "./seed-user.js";
-import { eq } from "drizzle-orm";
+import { evidenceTable } from "./schema/claims.js";
+import { savedSourcesTable } from "./schema/projects.js";
+import { translationsTable } from "./schema/translations.js";
+import { eq, inArray } from "drizzle-orm";
+
+const REMOVED_SOURCE_TITLES = [
+  "Ireland Civil Registration Index — Births 1864–1900 (Connacht Province)",
+  "Archdiocese of Quebec — Marriage Registers 1621–1800 (PRDH Index)",
+];
 
 // ── Collections ───────────────────────────────────────────────────────────────
 
@@ -36,9 +43,9 @@ const COLLECTIONS = [
   {
     name: "Parish & Civil Records",
     slug: "parish-civil",
-    subject: "Genealogy and demographic history",
+    subject: "Parish and civil registers",
     description:
-      "Baptismal registers, marriage bonds, burial records, and civil registration indexes from Europe and the Americas.",
+      "Baptismal registers, marriage records, and civil registers kept as historical sources.",
     iconLabel: "🗂",
     featured: false,
   },
@@ -292,10 +299,10 @@ const SOURCES = [
     dateLabel: "1653–1700",
     language: "English",
     provenance:
-      "Original registers held at London Metropolitan Archives, reference P69/BRI2/A/001/MS06540. Digitized in partnership with FindMyPast. Microfilm held at the Society of Genealogists, London.",
+      "Original registers held at London Metropolitan Archives, reference P69/BRI2/A/001/MS06540.",
     confidence: "high",
     chronology:
-      "Civil registration did not begin in England until 1837. These parish registers are the primary genealogical source for 17th-century London Nonconformist and Anglican records.",
+      "Civil registration did not begin in England until 1837. These parish registers are a primary record of 17th-century London parish life.",
     availability: "restricted",
     rightsStatement:
       "Original records © London Metropolitan Archives. Digital images available via FindMyPast subscription. Physical access by appointment.",
@@ -303,51 +310,8 @@ const SOURCES = [
       "Baptismal, marriage, and burial registers for one of the oldest City of London parishes. The registers span the Interregnum, Restoration, and early modern periods and include records of printers, journalists, and Fleet Street tradespeople.",
     excerpt:
       "Entries record forenames, surnames, dates of baptism, and father's name (or mother's name for illegitimate births), sometimes with occupation. Handwriting varies by incumbent.",
-    tags: ["London", "baptismal register", "parish records", "17th century", "genealogy"],
+    tags: ["London", "baptismal register", "parish records", "17th century"],
     yearApprox: 1676,
-  },
-  {
-    title: "Ireland Civil Registration Index — Births 1864–1900 (Connacht Province)",
-    sourceType: "primary",
-    collectionSlug: "parish-civil",
-    author: "General Register Office, Ireland",
-    dateLabel: "1864–1900",
-    language: "English",
-    provenance:
-      "Original registers held at the General Register Office, Roscommon, Ireland. Index digitized and hosted by IrishGenealogy.ie (a government service). FamilySearch also holds microfilm copies.",
-    confidence: "high",
-    availability: "open_access",
-    rightsStatement:
-      "Crown copyright expired. Index freely searchable at IrishGenealogy.ie. Note: FamilySearch (operated by The Church of Jesus Christ of Latter-day Saints) has digitized complementary microfilm holdings.",
-    description:
-      "Civil registration of births in Ireland began 1 January 1864. These indexes cover Connacht province (counties Galway, Mayo, Roscommon, Sligo, Leitrim) and are among the most complete sources for post-Famine Irish genealogy.\n\n⚠ FamilySearch note: FamilySearch is funded by The Church of Jesus Christ of Latter-day Saints (LDS/Mormon). The collaborative family tree on FamilySearch.org is user-editable and may contain unsourced claims. Verify all information against primary register images.",
-    excerpt:
-      "Index entries include: surname, forenames, district, year, and General Register Office reference number. Full register images (mother's maiden name, father's occupation, address) are accessible via the linked record.",
-    externalUrl: "https://www.irishgenealogy.ie",
-    tags: ["Ireland", "civil registration", "births", "Connacht", "genealogy", "FamilySearch"],
-    yearApprox: 1880,
-  },
-  {
-    title: "Archdiocese of Quebec — Marriage Registers 1621–1800 (PRDH Index)",
-    sourceType: "primary",
-    collectionSlug: "parish-civil",
-    author: "Catholic clergy, Parish of Quebec",
-    dateLabel: "1621–1800",
-    language: "English (index); French (originals)",
-    originalLanguage: "French",
-    provenance:
-      "Original registers held in parish archives and at the Bibliothèque et Archives nationales du Québec (BAnQ). The Programme de recherche en démographie historique (PRDH) at the Université de Montréal has indexed all individuals in New France.",
-    confidence: "high",
-    availability: "restricted",
-    rightsStatement:
-      "PRDH database accessible via subscription at prdh-igd.com. BAnQ digital images free for out-of-copyright records.",
-    description:
-      "The most comprehensive genealogical database for French Canada, covering approximately 700,000 individuals across 200 years of colonial and early provincial Quebec. Marriage acts are the most genealogically complete document type, naming both parents of bride and groom.",
-    excerpt:
-      "Marriage acts in Quebec typically record: date and parish, full names of bride and groom, names and residences of four parents, and names of witnesses with their relationship to the parties.",
-    externalUrl: "https://www.prdh-igd.com",
-    tags: ["Quebec", "French Canada", "marriage records", "Catholic", "New France", "genealogy"],
-    yearApprox: 1710,
   },
 
   // ── Census & Population Registers ────────────────────────────────────────
@@ -360,17 +324,17 @@ const SOURCES = [
     dateLabel: "June 1880",
     language: "English",
     provenance:
-      "Original schedules held at the National Archives and Records Administration (NARA), Record Group 29. Microfilm publication T9. Digitized and indexed by Ancestry.com and FamilySearch.\n\n⚠ FamilySearch note: FamilySearch is funded by The Church of Jesus Christ of Latter-day Saints (LDS/Mormon). Index transcriptions may contain errors; always verify against original microfilm images.",
+      "Original schedules held at the National Archives and Records Administration (NARA), Record Group 29. Microfilm publication T9.",
     confidence: "high",
     availability: "public_domain",
     rightsStatement:
-      "Original government records in the public domain. Database compilation rights held by Ancestry.com and FamilySearch respectively.",
+      "Original government records in the public domain.",
     description:
-      "The 1880 U.S. Federal Census is the first to record the relationship of each household member to the head of household, making it a critical genealogical resource. It also records birthplaces of parents, enabling one-step immigrant identification. Full index freely available on FamilySearch.",
+      "The 1880 U.S. Federal Census is the first to record the relationship of each household member to the head of household. It also records parents' birthplaces, which historians use to study immigration and household structure.",
     excerpt:
       "Schedule fields: name, relationship to head, sex, race, age, marital status, occupation, birthplace, father's birthplace, mother's birthplace. Disability and illness columns also recorded.",
-    externalUrl: "https://1880census.familysearch.org",
-    tags: ["US Census", "1880", "genealogy", "immigration", "household records"],
+    externalUrl: "https://www.archives.gov/research/census/1880",
+    tags: ["US Census", "1880", "immigration", "household records"],
     yearApprox: 1880,
   },
   {
@@ -387,11 +351,11 @@ const SOURCES = [
     rightsStatement:
       "Crown copyright expired for 1911 records. Digital images and transcription © FindMyPast / The National Archives. Subscription required for full image access.",
     description:
-      "The 1911 Census is uniquely valuable because householders completed their own returns in their own handwriting, rather than enumerators copying entries. It is also the first to record the number of years married, children born alive, and children still living — critical data for reconstructing family structure.",
+      "The 1911 Census is valuable because householders completed their own returns in their own handwriting, rather than enumerators copying entries. It is also the first to record years married, children born alive, and children still living.",
     excerpt:
       "Schedule includes: name, relationship, age, sex, occupation, birthplace, nationality, infirmity. Married women's fertility question adds: years married, children born alive, children still living.",
     externalUrl: "https://www.findmypast.co.uk/1911census",
-    tags: ["England", "Wales", "census 1911", "genealogy", "household records"],
+    tags: ["England", "Wales", "census 1911", "household records"],
     yearApprox: 1911,
   },
   {
@@ -403,17 +367,17 @@ const SOURCES = [
     language: "English (index); Swedish (originals)",
     originalLanguage: "Swedish",
     provenance:
-      "Original records held by Swedish regional archives (landsarkiv). Digitized by the Swedish Church and hosted on Arkiv Digital and SVAR (Swedish Archive Image Bank). FamilySearch holds microfilm copies.\n\n⚠ FamilySearch note: FamilySearch is funded by The Church of Jesus Christ of Latter-day Saints (LDS/Mormon). Use official Swedish archive sources to verify.",
+      "Original records held by Swedish regional archives (landsarkiv). Digitized by the Church of Sweden and hosted on Arkiv Digital and SVAR (Swedish Archive Image Bank).",
     confidence: "high",
     availability: "restricted",
     rightsStatement:
       "Original records public domain. Digital access via Arkiv Digital subscription or SVAR. Some records freely available via Demografiska databasen (DDB).",
     description:
-      "The Swedish household examination records are among the most comprehensive pre-modern population registers in the world. Clergy visited every household annually, recording literacy levels and religious knowledge alongside demographic data. They form the backbone of Swedish genealogical research.",
+      "The Swedish household examination records are among the most comprehensive pre-modern population registers in the world. Clergy visited every household annually, recording literacy and religious knowledge alongside demographic data.",
     excerpt:
       "Entries record household by household: head of household, spouse, children, servants; ages; birthplaces; literacy rating; dates of communion; and notations on moves in and out of the parish.",
     externalUrl: "https://www.arkivdigital.net",
-    tags: ["Sweden", "household examination", "Lutheran", "genealogy", "Scandinavian records"],
+    tags: ["Sweden", "household examination", "Lutheran", "Scandinavian records"],
     yearApprox: 1850,
   },
 
@@ -583,7 +547,8 @@ async function seed() {
       await db.insert(collectionsTable).values(col);
       console.log(`  ✔ Collection inserted: ${col.name}`);
     } else {
-      console.log(`  – Collection already exists: ${col.name}`);
+      await db.update(collectionsTable).set(col).where(eq(collectionsTable.slug, col.slug));
+      console.log(`  – Collection updated: ${col.name}`);
     }
   }
 
@@ -604,6 +569,19 @@ async function seed() {
     }
   }
 
+  const removed = await db
+    .select({ id: sourcesTable.id })
+    .from(sourcesTable)
+    .where(inArray(sourcesTable.title, REMOVED_SOURCE_TITLES));
+  const removedIds = removed.map((row) => row.id);
+  if (removedIds.length > 0) {
+    await db.delete(savedSourcesTable).where(inArray(savedSourcesTable.sourceId, removedIds));
+    await db.delete(evidenceTable).where(inArray(evidenceTable.sourceId, removedIds));
+    await db.delete(translationsTable).where(inArray(translationsTable.sourceId, removedIds));
+    await db.delete(sourcesTable).where(inArray(sourcesTable.id, removedIds));
+    console.log(`  ✔ Removed ${removedIds.length} retired catalog records`);
+  }
+
   // Upsert sources (keyed by title — safe for a demo dataset)
   for (const src of SOURCES) {
     const existing = await db
@@ -622,7 +600,19 @@ async function seed() {
       });
       console.log(`  ✔ Source inserted: ${src.title}`);
     } else {
-      console.log(`  – Source already exists: ${src.title}`);
+      await db
+        .update(sourcesTable)
+        .set({
+          ...src,
+          externalUrl: src.externalUrl ?? null,
+          originalLanguage: src.originalLanguage ?? null,
+          originalLanguageText: src.originalLanguageText ?? null,
+          yearApprox: src.yearApprox ?? null,
+          provenance: src.provenance,
+          tags: src.tags ?? [],
+        })
+        .where(eq(sourcesTable.title, src.title));
+      console.log(`  – Source updated: ${src.title}`);
     }
   }
 

@@ -34,7 +34,7 @@ export type Collection = typeof collectionsTable.$inferSelect;
 export const sourcesTable = pgTable("sources", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
-  sourceType: text("source_type").notNull(), // primary, translation, scholarship, interpretation, ai_assistance, conclusion
+  sourceType: text("source_type").notNull(), // primary, translation, scholarship, interpretation, conclusion
   collectionSlug: text("collection_slug"),
   repositoryId: integer("repository_id").references(() => repositoriesTable.id),
   repositoryAccessStatus: text("repository_access_status"), // digitized, catalog_only, restricted, physical_access_required

@@ -9,6 +9,7 @@ import {
 import { requireEditor } from "../auth/middleware";
 import { sendValidationError } from "../lib/http";
 import { likeContains, parseListLimit, parseListPage } from "../lib/security";
+import { publicSourceType } from "../lib/source-type";
 
 const router = Router();
 
@@ -34,7 +35,7 @@ function formatSource(
   return {
     id: row.id,
     title: row.title,
-    sourceType: row.sourceType,
+    sourceType: publicSourceType(row.sourceType),
     collectionSlug: row.collectionSlug ?? null,
     collectionName: collectionName ?? null,
     repository: formatRepository(repository),
@@ -183,7 +184,11 @@ router.get("/sources/stats", async (req, res): Promise<void> => {
 
   res.json({
     totalSources: total[0]?.count ?? 0,
-    byType: byType.map((r) => ({ type: r.type, count: r.count })),
+    byType: [...byType.reduce((counts, row) => {
+      const type = publicSourceType(row.type);
+      counts.set(type, (counts.get(type) ?? 0) + row.count);
+      return counts;
+    }, new Map<string, number>())].map(([type, count]) => ({ type, count })),
     byConfidence: byConfidence.map((r) => ({ confidence: r.confidence, count: r.count })),
     byCollection: byCollection.filter((r) => r.collection).map((r) => ({ collection: r.collection!, count: r.count })),
     byAvailability: byAvailability.map((r) => ({ availability: r.availability, count: r.count })),

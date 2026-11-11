@@ -9,8 +9,7 @@
  *   5. Readable Translation — natural-language rendering
  *   6. Published Translation — existing scholarly reference (with attribution)
  *   7. Commentary           — contextual and historical notes
- *   8. AI Assistance        — clearly marked, never source evidence
- *   9. User Interpretation  — researcher's own synthesis (labelled accordingly)
+ *   8. User Interpretation  — researcher's own synthesis (labelled accordingly)
  */
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useLocation } from "wouter";
@@ -21,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  ArrowLeft, Save, Languages, AlertTriangle, BookOpen, Bot,
+  ArrowLeft, Save, Languages, BookOpen,
   User, Quote, Lightbulb, ChevronDown, ChevronUp, Info,
   CheckCircle2, Clock, Download, Copy, Printer,
 } from "lucide-react";
@@ -51,7 +50,6 @@ type TranslationLayer = {
   publishedTranslationAttribution: string;
   commentary: string;
   userInterpretation: string;
-  aiAssistance: string;
 };
 
 const EMPTY_LAYERS: TranslationLayer = {
@@ -64,15 +62,23 @@ const EMPTY_LAYERS: TranslationLayer = {
   publishedTranslationAttribution: "",
   commentary: "",
   userInterpretation: "",
-  aiAssistance: "",
 };
+
+function pickLayers(value: Partial<TranslationLayer>): TranslationLayer {
+  const next = { ...EMPTY_LAYERS };
+  (Object.keys(EMPTY_LAYERS) as (keyof TranslationLayer)[]).forEach((key) => {
+    const field = value[key];
+    if (typeof field === "string") next[key] = field;
+  });
+  return next;
+}
 
 type LayerMeta = {
   key: keyof TranslationLayer;
   label: string;
   icon: React.ReactNode;
   description: string;
-  epistemic: "source" | "linguistic" | "translation" | "interpretive" | "ai";
+  epistemic: "source" | "linguistic" | "translation" | "interpretive";
   placeholder: string;
   isSmall?: boolean; // single-line input
 };
@@ -151,14 +157,6 @@ const LAYERS: LayerMeta[] = [
     epistemic: "interpretive",
     placeholder: "State your interpretation clearly and note what evidence supports it…",
   },
-  {
-    key: "aiAssistance",
-    label: "AI Assistance",
-    icon: <Bot className="h-4 w-4" />,
-    description: "AI-generated drafts or suggestions. Always verify against the original. Never cite this as source evidence.",
-    epistemic: "ai",
-    placeholder: "Paste AI-generated suggestions here for your own reference…",
-  },
 ];
 
 const EPISTEMIC_COLORS: Record<LayerMeta["epistemic"], string> = {
@@ -166,14 +164,12 @@ const EPISTEMIC_COLORS: Record<LayerMeta["epistemic"], string> = {
   linguistic:  "border-l-teal-600 bg-teal-50/40 dark:bg-teal-950/20",
   translation: "border-l-emerald-600 bg-emerald-50/40 dark:bg-emerald-950/20",
   interpretive:"border-l-amber-600 bg-amber-50/40 dark:bg-amber-950/20",
-  ai:          "border-l-rose-600 bg-rose-50/40 dark:bg-rose-950/20",
 };
 const EPISTEMIC_BADGE: Record<LayerMeta["epistemic"], { label: string; class: string }> = {
   source:      { label: "Source", class: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300" },
   linguistic:  { label: "Linguistic", class: "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-300" },
   translation: { label: "Translation", class: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" },
   interpretive:{ label: "Interpretive", class: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
-  ai:          { label: "AI — Not Evidence", class: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300" },
 };
 
 const storageKeyFor = (userId: number, sourceId: number) => `arc_translation_${userId}_${sourceId}`;
@@ -222,7 +218,7 @@ export function TranslationWorkspacePage() {
       const cached = localStorage.getItem(storageKey);
       if (cached) {
         const c = JSON.parse(cached);
-        if (c.layers) setLayers(c.layers);
+        if (c.layers) setLayers({ ...EMPTY_LAYERS, ...pickLayers(c.layers) });
         if (c.translationId) setTranslationId(c.translationId);
       }
     } catch {}
@@ -239,7 +235,6 @@ export function TranslationWorkspacePage() {
         publishedTranslationAttribution: String(data.publishedTranslationAttribution ?? ""),
         commentary: String(data.commentary ?? ""),
         userInterpretation: String(data.userInterpretation ?? ""),
-        aiAssistance: String(data.aiAssistance ?? ""),
       };
       setLayers((prev) => {
         const hasServerContent = Object.values(serverLayers).some((v) => v.trim());
@@ -342,8 +337,6 @@ export function TranslationWorkspacePage() {
       { key: "commentary",         heading: "## Commentary _(Interpretive layer)_" },
       { key: "userInterpretation", heading: "## Researcher Interpretation _(Interpretive layer)_",
         disclaimer: "> **Researcher interpretation** — labelled as researcher analysis, not primary evidence." },
-      { key: "aiAssistance",       heading: "## AI Assistance",
-        disclaimer: "> ⚠️ **AI-generated — not source evidence.** Verify against primary sources before citing." },
     ];
 
     let any = false;
@@ -517,15 +510,6 @@ export function TranslationWorkspacePage() {
         </div>
       </header>
 
-      {/* AI disclaimer — always visible */}
-      <div className="flex items-start gap-3 p-4 rounded-xl border border-rose-200 bg-rose-50/60 dark:border-rose-900/40 dark:bg-rose-950/20">
-        <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
-        <div className="text-sm leading-relaxed">
-          <strong className="text-rose-800 dark:text-rose-300">AI Assistance is never source evidence.</strong>
-          {" "}All AI-generated content in this workspace is marked with a red border and labelled "AI — Not Evidence." It must be verified against primary sources and cited correctly before use in any research claim or publication.
-        </div>
-      </div>
-
       {/* Layer legend */}
       <div className="flex flex-wrap gap-2 text-xs">
         {Object.entries(EPISTEMIC_BADGE).map(([key, val]) => (
@@ -565,11 +549,6 @@ export function TranslationWorkspacePage() {
               {!isCollapsed && (
                 <div className="px-4 pb-4 space-y-2">
                   <p className="text-xs text-muted-foreground leading-relaxed">{layer.description}</p>
-                  {layer.epistemic === "ai" && (
-                    <div className="flex items-center gap-1.5 text-xs text-rose-700 dark:text-rose-400 font-semibold">
-                      <AlertTriangle className="h-3.5 w-3.5" /> AI-generated — not source evidence. Verify before use.
-                    </div>
-                  )}
                   {layer.epistemic === "interpretive" && layer.key === "userInterpretation" && (
                     <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 font-semibold">
                       <User className="h-3.5 w-3.5" /> Your interpretation — labelled as researcher analysis, not primary evidence.

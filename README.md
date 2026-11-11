@@ -121,7 +121,11 @@ contract, run `pnpm api:codegen`.
 
 `pnpm db:push` applies the checked-in Drizzle schema to the database named by
 `DATABASE_URL`. Use a local or disposable development database; do not point it
-at production unless you intend to update that database.
+at production unless you intend to update that database. The translation
+workspace no longer has a machine-draft column: `translations.ai_assistance`
+is dropped on the next push because that text was only shown in the removed
+workspace layer. Re-run `pnpm db:seed` and `pnpm db:seed:research` to refresh
+sample catalog rows.
 
 ## Project layout
 

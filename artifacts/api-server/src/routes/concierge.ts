@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, collectionsTable, sourcesTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { sendValidationError } from "../lib/http";
+import { publicSourceType } from "../lib/source-type";
 import { recommendBody } from "../validation/bodies";
 
 const router = Router();
@@ -108,7 +109,7 @@ router.post("/concierge/recommend", async (req, res): Promise<void> => {
   const suggestedSources = sourceRows.map((source) => ({
     id: source.id,
     title: source.title,
-    sourceType: source.sourceType,
+    sourceType: publicSourceType(source.sourceType),
     collectionSlug: source.collectionSlug ?? null,
     collectionName: null,
     author: source.author ?? null,

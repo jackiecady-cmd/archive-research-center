@@ -9,6 +9,7 @@ import {
   sourcesTable,
   evidenceTable,
 } from "@workspace/db";
+import { publicSourceType } from "../lib/source-type";
 import {
   CreateResearchProjectBody,
   UpdateResearchProjectBody,
@@ -141,7 +142,7 @@ router.get("/research-projects/:id", async (req, res): Promise<void> => {
       projectId: ss.projectId,
       sourceId: ss.sourceId,
       source: src ? {
-        id: src.id, title: src.title, sourceType: src.sourceType,
+        id: src.id, title: src.title, sourceType: publicSourceType(src.sourceType),
         collectionSlug: src.collectionSlug ?? null, collectionName: null,
         author: src.author ?? null, dateLabel: src.dateLabel ?? null,
         language: src.language ?? null, originalLanguage: src.originalLanguage ?? null,
@@ -231,7 +232,7 @@ router.get("/research-projects/:projectId/saved-sources", async (req, res): Prom
     const src = sourceMap[ss.sourceId];
     return {
       id: ss.id, projectId: ss.projectId, sourceId: ss.sourceId,
-      source: src ? { id: src.id, title: src.title, sourceType: src.sourceType,
+      source: src ? { id: src.id, title: src.title, sourceType: publicSourceType(src.sourceType),
         collectionSlug: src.collectionSlug ?? null, collectionName: null,
         author: src.author ?? null, dateLabel: src.dateLabel ?? null,
         language: src.language ?? null, originalLanguage: src.originalLanguage ?? null,
@@ -270,7 +271,7 @@ router.post("/research-projects/:projectId/saved-sources", async (req, res): Pro
   const [src] = await db.select().from(sourcesTable).where(eq(sourcesTable.id, row.sourceId));
   res.status(201).json({
     id: row.id, projectId: row.projectId, sourceId: row.sourceId,
-    source: src ? { id: src.id, title: src.title, sourceType: src.sourceType,
+    source: src ? { id: src.id, title: src.title, sourceType: publicSourceType(src.sourceType),
       collectionSlug: src.collectionSlug ?? null, collectionName: null,
       author: src.author ?? null, dateLabel: src.dateLabel ?? null,
       language: src.language ?? null, originalLanguage: src.originalLanguage ?? null,

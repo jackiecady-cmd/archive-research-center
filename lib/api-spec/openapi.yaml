@@ -1091,7 +1091,7 @@ components:
         title: { type: string }
         sourceType:
           type: string
-          enum: [primary, translation, scholarship, interpretation, ai_assistance, conclusion]
+          enum: [primary, translation, scholarship, interpretation, conclusion]
         collectionSlug: { type: ["string", "null"] }
         collectionName: { type: ["string", "null"] }
         repository:
@@ -1130,7 +1130,7 @@ components:
         title: { type: string }
         sourceType:
           type: string
-          enum: [primary, translation, scholarship, interpretation, ai_assistance, conclusion]
+          enum: [primary, translation, scholarship, interpretation, conclusion]
         collectionSlug: { type: string }
         repositoryId: { type: number }
         repositoryAccessStatus:
@@ -1612,7 +1612,6 @@ components:
         publishedTranslationAttribution: { type: ["string", "null"] }
         commentary: { type: ["string", "null"] }
         userInterpretation: { type: ["string", "null"] }
-        aiAssistance: { type: ["string", "null"] }
         createdAt: { type: string }
         updatedAt: { type: string }
 
@@ -1628,7 +1627,6 @@ components:
         publishedTranslationAttribution: { type: string }
         commentary: { type: string }
         userInterpretation: { type: string }
-        aiAssistance: { type: string }
 
     TranslationWorkspaceSummary:
       type: object

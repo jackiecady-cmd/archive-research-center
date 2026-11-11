@@ -16,5 +16,4 @@ export interface TranslationUpdateInput {
   publishedTranslationAttribution?: string;
   commentary?: string;
   userInterpretation?: string;
-  aiAssistance?: string;
 }
