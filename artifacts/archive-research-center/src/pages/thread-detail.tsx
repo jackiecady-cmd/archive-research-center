@@ -28,7 +28,7 @@ export function ThreadDetailPage() {
     if (!replyContent.trim()) return;
     createReply.mutate({
       threadId: id,
-      data: { content: replyContent, authorName: "Current User" }
+      data: { content: replyContent }
     }, {
       onSuccess: () => {
         setReplyContent("");

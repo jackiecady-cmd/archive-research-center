@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { db, collectionsTable, repositoriesTable, sourcesTable } from "@workspace/db";
 
 const router = Router();
@@ -21,10 +21,16 @@ function formatCollection(row: typeof collectionsTable.$inferSelect, sourceCount
 // GET /collections
 router.get("/collections", async (req, res): Promise<void> => {
   const cols = await db.select().from(collectionsTable).orderBy(desc(collectionsTable.featured));
-  const all = await db.select().from(sourcesTable);
+  const countRows = await db
+    .select({
+      slug: sourcesTable.collectionSlug,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(sourcesTable)
+    .groupBy(sourcesTable.collectionSlug);
   const counts: Record<string, number> = {};
-  for (const s of all) {
-    if (s.collectionSlug) counts[s.collectionSlug] = (counts[s.collectionSlug] ?? 0) + 1;
+  for (const row of countRows) {
+    if (row.slug) counts[row.slug] = row.count;
   }
   res.json(cols.map((c) => formatCollection(c, counts[c.slug] ?? 0)));
 });

@@ -257,7 +257,7 @@ function AddEvidenceDialog({ claimCardId, projectId }: { claimCardId: number; pr
   const [role, setRole] = useState<"supports" | "contradicts" | "contextualizes" | "neutral">("supports");
   const [summary, setSummary] = useState("");
 
-  const { data: sources } = useListSources({ limit: 100 });
+  const { data: sources } = useListSources({ limit: 50 });
   const add = useAddEvidence();
   const queryClient = useQueryClient();
   const { toast } = useToast();

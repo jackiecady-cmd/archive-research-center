@@ -14,7 +14,9 @@ database schema, and generated API contracts.
 ## Run locally
 
 1. Copy `.env.example` to `.env` and set `DATABASE_URL` to a development
-   PostgreSQL database.
+   PostgreSQL database. Set `CORS_ORIGINS` to the web origin (the default is
+   `http://localhost:5173`). Leave `TRUST_PROXY` unset unless a reverse proxy
+   is in front of the API.
 2. Install dependencies:
 
    ```sh
@@ -28,14 +30,38 @@ database schema, and generated API contracts.
    pnpm db:seed
    ```
 
+   `pnpm db:push` adds required account and ownership columns. If it fails
+   because an older database already has research, forum, or translation rows,
+   recreate that development database (or delete those rows) and push again.
+   Catalog tables for sources, collections, and repositories do not need an
+   owner. Seeded research and forum rows are assigned to `seed@archive.local`.
+   That account is created with a random password that is not saved, so it
+   cannot be used to sign in.
+
 4. Start the API and web app:
 
    ```sh
    pnpm dev
    ```
 
+   `pnpm dev` runs the API with `NODE_ENV=development`. The production start
+   command (`pnpm --filter @workspace/api-server start`) sets
+   `NODE_ENV=production`, which marks the session cookie `Secure`.
+
 Open <http://localhost:5173>. The Vite development server forwards `/api`
-requests to the API on port 8080.
+requests to the API on port 8080. Create an account from Sign up. To make the
+first administrator, set `ADMIN_EMAIL` to that address before registering or
+signing in. To change a role later:
+
+```sh
+ADMIN_EMAIL=you@example.com pnpm db:set-role
+pnpm db:set-role -- you@example.com editor
+```
+
+Roles are `user`, `editor`, and `admin`. Editors and administrators can change
+catalog records. Research projects, notes, saved sources, claim cards,
+evidence, and translation workspaces are visible only to their owner (an
+administrator can also read and change research items).
 
 ## Checks and builds
 
@@ -63,10 +89,9 @@ at production unless you intend to update that database.
 
 ## Current boundaries
 
-This remains a preview-stage application. Authentication, payment and membership
-flows, email, and external integrations are mocked or informational. Do not
-expose this version as a multi-user service without implementing authentication,
-authorization, and user-scoped data access.
+Accounts, server-side sessions, and ownership checks are implemented in this
+repository. Membership and payment flows are still informational and are not
+stored. Email delivery and external integrations are not wired up.
 
 The repository contains curated reference seed data, not a copy of the original
 workspace's live database. Secrets, credentials, the design sandbox, generated

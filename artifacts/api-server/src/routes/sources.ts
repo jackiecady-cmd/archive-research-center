@@ -6,6 +6,9 @@ import {
   CreateSourceBody,
   UpdateSourceBody,
 } from "@workspace/api-zod";
+import { requireEditor } from "../auth/middleware";
+import { sendValidationError } from "../lib/http";
+import { likeContains, parseListLimit, parseListPage } from "../lib/security";
 
 const router = Router();
 
@@ -60,7 +63,7 @@ function formatSource(
 router.get("/sources", async (req, res): Promise<void> => {
   const params = ListSourcesQueryParams.safeParse(req.query);
   if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+    sendValidationError(res, params.error);
     return;
   }
   const {
@@ -72,11 +75,12 @@ router.get("/sources", async (req, res): Promise<void> => {
 
   // Full-text search across title, description, and excerpt (OR logic)
   if (q) {
+    const pattern = likeContains(q);
     conditions.push(
       or(
-        ilike(sourcesTable.title, `%${q}%`),
-        ilike(sourcesTable.description, `%${q}%`),
-        ilike(sourcesTable.excerpt, `%${q}%`),
+        ilike(sourcesTable.title, pattern),
+        ilike(sourcesTable.description, pattern),
+        ilike(sourcesTable.excerpt, pattern),
       )!
     );
   }
@@ -104,8 +108,19 @@ router.get("/sources", async (req, res): Promise<void> => {
   if (yearTo !== undefined) conditions.push(lte(sourcesTable.yearApprox, yearTo));
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
-  const pageNum = Number(page);
-  const limitNum = Number(limit);
+  const pageNum = parseListPage(page);
+  const limitNum = parseListLimit(limit, 20);
+  if (pageNum === null || limitNum === null) {
+    res.status(400).json({
+      error: "Validation failed",
+      formErrors: [],
+      fieldErrors: {
+        ...(pageNum === null ? { page: ["page must be an integer greater than or equal to 1"] } : {}),
+        ...(limitNum === null ? { limit: ["limit must be an integer from 1 to 50"] } : {}),
+      },
+    });
+    return;
+  }
   const offset = (pageNum - 1) * limitNum;
 
   const [rows, countResult] = await Promise.all([
@@ -143,10 +158,10 @@ router.get("/sources", async (req, res): Promise<void> => {
 });
 
 // POST /sources
-router.post("/sources", async (req, res): Promise<void> => {
+router.post("/sources", requireEditor, async (req, res): Promise<void> => {
   const parsed = CreateSourceBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+    sendValidationError(res, parsed.error);
     return;
   }
   const [row] = await db.insert(sourcesTable).values(parsed.data).returning();
@@ -203,7 +218,7 @@ router.get("/sources/:id", async (req, res): Promise<void> => {
 });
 
 // PATCH /sources/:id — update editable fields (editor workflow)
-router.patch("/sources/:id", async (req, res): Promise<void> => {
+router.patch("/sources/:id", requireEditor, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
   if (isNaN(id)) {
@@ -213,7 +228,7 @@ router.patch("/sources/:id", async (req, res): Promise<void> => {
 
   const parsed = UpdateSourceBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+    sendValidationError(res, parsed.error);
     return;
   }
 

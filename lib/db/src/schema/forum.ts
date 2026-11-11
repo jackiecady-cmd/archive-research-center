@@ -7,9 +7,13 @@ import {
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+import { usersTable } from "./users";
 
 export const forumThreadsTable = pgTable("forum_threads", {
   id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   content: text("content").notNull(),
   category: text("category").notNull(),
@@ -33,7 +37,12 @@ export type ForumThread = typeof forumThreadsTable.$inferSelect;
 
 export const forumRepliesTable = pgTable("forum_replies", {
   id: serial("id").primaryKey(),
-  threadId: integer("thread_id").notNull(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  threadId: integer("thread_id")
+    .notNull()
+    .references(() => forumThreadsTable.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   authorName: text("author_name").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })

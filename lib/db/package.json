@@ -5,16 +5,19 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./schema": "./src/schema/index.ts"
+    "./schema": "./src/schema/index.ts",
+    "./passwords": "./src/passwords.ts"
   },
   "scripts": {
     "push": "drizzle-kit push --config ./drizzle.config.ts",
     "push-force": "drizzle-kit push --force --config ./drizzle.config.ts",
     "seed": "node --import tsx/esm src/seed.ts",
     "seed:research": "node --import tsx/esm src/seed-research.ts",
-    "seed:forum": "node --import tsx/esm src/seed-forum.ts"
+    "seed:forum": "node --import tsx/esm src/seed-forum.ts",
+    "set-role": "node --import tsx/esm src/set-role.ts"
   },
   "dependencies": {
+    "argon2": "^0.43.0",
     "drizzle-orm": "catalog:",
     "drizzle-zod": "^0.8.3",
     "pg": "^8.22.0",

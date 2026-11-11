@@ -7,7 +7,11 @@ info:
 servers:
   - url: /api
     description: Base API path
+security:
+  - sessionCookie: []
 tags:
+  - name: auth
+    description: Email and password accounts
   - name: health
     description: Health operations
   - name: sources
@@ -37,6 +41,7 @@ paths:
   /healthz:
     get:
       operationId: healthCheck
+      security: []
       tags: [health]
       summary: Health check
       responses:
@@ -47,11 +52,82 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 
+  /auth/register:
+    post:
+      operationId: register
+      security: []
+      tags: [auth]
+      summary: Create an email and password account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Created account and session cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "409":
+          description: Email already registered
+
+  /auth/login:
+    post:
+      operationId: login
+      security: []
+      tags: [auth]
+      summary: Sign in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Signed-in account and session cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      operationId: logout
+      security: []
+      tags: [auth]
+      summary: End the current session
+      responses:
+        "204":
+          description: Session cleared
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      security: []
+      tags: [auth]
+      summary: Return the signed-in account
+      responses:
+        "200":
+          description: Current account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Not signed in
+
   # ─── Sources ─────────────────────────────────────────────────────────────────
 
   /sources:
     get:
       operationId: listSources
+      security: []
       tags: [sources]
       summary: List and search archive sources
       parameters:
@@ -83,10 +159,10 @@ paths:
           schema: { type: string }
         - name: page
           in: query
-          schema: { type: number }
+          schema: { type: integer, minimum: 1 }
         - name: limit
           in: query
-          schema: { type: number }
+          schema: { type: integer, minimum: 1, maximum: 50 }
         - name: yearFrom
           in: query
           schema: { type: number }
@@ -121,6 +197,7 @@ paths:
   /sources/{id}:
     get:
       operationId: getSource
+      security: []
       tags: [sources]
       summary: Get a single source record
       parameters:
@@ -165,6 +242,7 @@ paths:
   /sources/stats:
     get:
       operationId: getSourceStats
+      security: []
       tags: [sources]
       summary: Archive statistics overview
       responses:
@@ -180,6 +258,7 @@ paths:
   /collections:
     get:
       operationId: listCollections
+      security: []
       tags: [collections]
       summary: List all curated collections
       responses:
@@ -195,6 +274,7 @@ paths:
   /collections/{slug}:
     get:
       operationId: getCollection
+      security: []
       tags: [collections]
       summary: Get a collection by slug with its sources
       parameters:
@@ -217,6 +297,7 @@ paths:
   /repositories:
     get:
       operationId: listRepositories
+      security: []
       tags: [repositories]
       summary: List holding repositories
       responses:
@@ -232,6 +313,7 @@ paths:
   /repositories/{slug}:
     get:
       operationId: getRepository
+      security: []
       tags: [repositories]
       summary: Get a holding repository with its linked sources
       parameters:
@@ -746,6 +828,7 @@ paths:
   /membership/plans:
     get:
       operationId: listMembershipPlans
+      security: []
       tags: [membership]
       summary: List available membership plans
       responses:
@@ -808,6 +891,7 @@ paths:
   /concierge/paths:
     get:
       operationId: listConciergePaths
+      security: []
       tags: [concierge]
       summary: List concierge researcher paths
       responses:
@@ -845,7 +929,7 @@ paths:
     get:
       operationId: getTranslation
       tags: [translations]
-      summary: Get or auto-create a translation workspace for a source
+      summary: Read the signed-in researcher's translation workspace for a source
       parameters:
         - name: sourceId
           in: query
@@ -860,19 +944,44 @@ paths:
                 $ref: "#/components/schemas/Translation"
         "400":
           description: Missing or invalid sourceId
+        "404":
+          description: No workspace for this account and source
+    post:
+      operationId: createTranslation
+      tags: [translations]
+      summary: Create or return the signed-in researcher's workspace for a source
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTranslationInput"
+      responses:
+        "200":
+          description: Existing workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Translation"
+        "201":
+          description: Created workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Translation"
 
   /translations/workspaces:
     get:
       operationId: listTranslationWorkspaces
       tags: [translations]
-      summary: List saved translation workspaces with source info, optionally filtered by search query
+      summary: List the signed-in researcher's translation workspaces
       parameters:
         - name: q
           in: query
           schema: { type: string }
         - name: limit
           in: query
-          schema: { type: number }
+          schema: { type: integer, minimum: 1, maximum: 50 }
       responses:
         "200":
           description: List of workspace summaries
@@ -910,7 +1019,41 @@ paths:
           description: Not found
 
 components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: arc_session
+      description: Server-side session id. The cookie is httpOnly, SameSite=Lax, and Secure in production.
   schemas:
+    AuthUser:
+      type: object
+      required: [id, email, displayName, role]
+      properties:
+        id: { type: integer }
+        email: { type: string, format: email }
+        displayName: { type: string }
+        role:
+          type: string
+          enum: [user, editor, admin]
+    RegisterInput:
+      type: object
+      required: [email, password, displayName]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 10, maxLength: 200 }
+        displayName: { type: string, minLength: 1, maxLength: 80 }
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 1, maxLength: 200 }
+    CreateTranslationInput:
+      type: object
+      required: [sourceId]
+      properties:
+        sourceId: { type: integer, minimum: 1 }
     HealthStatus:
       type: object
       properties:
@@ -956,7 +1099,7 @@ components:
         excerpt: { type: ["string", "null"] }
         originalLanguageText: { type: ["string", "null"] }
         externalUrl: { type: ["string", "null"] }
-        tags: { type: array, items: { type: string } }
+        tags: { type: array, maxItems: 50, items: { type: string } }
         yearApprox: { type: ["number", "null"] }
         createdAt: { type: string }
 
@@ -991,7 +1134,7 @@ components:
         excerpt: { type: string }
         originalLanguageText: { type: string }
         externalUrl: { type: string }
-        tags: { type: array, items: { type: string } }
+        tags: { type: array, maxItems: 50, items: { type: string } }
         yearApprox: { type: number }
 
     UpdateSourceInput:
@@ -1299,19 +1442,18 @@ components:
         category: { type: string }
         authorName: { type: string }
         replyCount: { type: number }
-        tags: { type: array, items: { type: string } }
+        tags: { type: array, maxItems: 50, items: { type: string } }
         createdAt: { type: string }
         lastActivityAt: { type: string }
 
     ForumThreadInput:
       type: object
-      required: [title, content, category, authorName]
+      required: [title, content, category]
       properties:
         title: { type: string }
         content: { type: string }
         category: { type: string }
-        authorName: { type: string }
-        tags: { type: array, items: { type: string } }
+        tags: { type: array, maxItems: 50, items: { type: string } }
 
     ForumReply:
       type: object
@@ -1325,10 +1467,9 @@ components:
 
     ForumReplyInput:
       type: object
-      required: [content, authorName]
+      required: [content]
       properties:
         content: { type: string }
-        authorName: { type: string }
 
     ForumThreadDetail:
       type: object

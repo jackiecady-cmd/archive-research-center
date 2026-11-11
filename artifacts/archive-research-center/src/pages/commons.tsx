@@ -115,7 +115,7 @@ function CreateThreadDialog() {
   const handleCreate = () => {
     if (!title.trim() || !content.trim()) return;
     create.mutate({
-      data: { title, content, category, authorName: "Current User" } // hardcoded author for demo
+      data: { title, content, category }
     }, {
       onSuccess: () => {
         toast({ title: "Thread posted" });

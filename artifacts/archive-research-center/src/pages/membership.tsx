@@ -57,7 +57,7 @@ export function MembershipPage() {
             </CardHeader>
             <CardContent className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <div className="text-2xl font-serif capitalize font-medium">{membership?.tier} Tier</div>
+                <div className="text-2xl font-serif capitalize font-medium">{membership?.tier ?? "free"} Tier</div>
                 <div className="text-sm text-muted-foreground mt-1">
                   {membership?.status === 'active' ? (
                     <span className="text-emerald-600 font-medium">Active • Renews {membership?.renewsAt ? new Date(membership.renewsAt).toLocaleDateString() : ''}</span>

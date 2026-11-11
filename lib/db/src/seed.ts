@@ -9,6 +9,7 @@
  */
 
 import { db, collectionsTable, repositoriesTable, sourcesTable } from "./index.js";
+import { ensureSeedUser } from "./seed-user.js";
 import { eq } from "drizzle-orm";
 
 // ── Collections ───────────────────────────────────────────────────────────────
@@ -665,6 +666,7 @@ async function seed() {
     }
   }
 
+  await ensureSeedUser();
   console.log("🌱  Seed complete.");
   process.exit(0);
 }

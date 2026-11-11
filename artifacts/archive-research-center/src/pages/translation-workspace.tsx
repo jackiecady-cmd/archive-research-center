@@ -27,6 +27,8 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
+import { buildPrintDocument } from "@/lib/print-html";
 import { ConfidenceBadge, SourceTypeBadge } from "@/components/source-badges";
 import {
   DropdownMenu,
@@ -174,7 +176,7 @@ const EPISTEMIC_BADGE: Record<LayerMeta["epistemic"], { label: string; class: st
   ai:          { label: "AI — Not Evidence", class: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300" },
 };
 
-const STORAGE_KEY = (id: number) => `arc_translation_${id}`;
+const storageKeyFor = (userId: number, sourceId: number) => `arc_translation_${userId}_${sourceId}`;
 
 // ── Debounce helper ────────────────────────────────────────────────────────
 
@@ -194,6 +196,7 @@ export function TranslationWorkspacePage() {
   const sourceId = parseInt(params.sourceId || "0", 10);
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Source record
   const { data: source, isLoading: sourceLoading } = useGetSource(sourceId, {
@@ -211,12 +214,12 @@ export function TranslationWorkspacePage() {
   const debouncedLayers = useDebounce(layers, 1200);
   const initializedRef = useRef(false);
 
-  // Load workspace from API on mount
+  // Load the caller's workspace. Create it only when none exists.
   useEffect(() => {
-    if (!sourceId) return;
-    // Try localStorage first (instant)
+    if (!sourceId || !user) return;
+    const storageKey = storageKeyFor(user.id, sourceId);
     try {
-      const cached = localStorage.getItem(STORAGE_KEY(sourceId));
+      const cached = localStorage.getItem(storageKey);
       if (cached) {
         const c = JSON.parse(cached);
         if (c.layers) setLayers(c.layers);
@@ -224,36 +227,47 @@ export function TranslationWorkspacePage() {
       }
     } catch {}
 
-    // Then fetch/create from API
-    fetch(`/api/translations?sourceId=${sourceId}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setTranslationId(data.id);
-        const serverLayers: TranslationLayer = {
-          originalText: data.originalText ?? "",
-          transliteration: data.transliteration ?? "",
-          morphologyNotes: data.morphologyNotes ?? "",
-          literalTranslation: data.literalTranslation ?? "",
-          readableTranslation: data.readableTranslation ?? "",
-          publishedTranslation: data.publishedTranslation ?? "",
-          publishedTranslationAttribution: data.publishedTranslationAttribution ?? "",
-          commentary: data.commentary ?? "",
-          userInterpretation: data.userInterpretation ?? "",
-          aiAssistance: data.aiAssistance ?? "",
-        };
-        setLayers((prev) => {
-          // If server has content, prefer it; otherwise keep local draft
-          const hasServerContent = Object.values(serverLayers).some((v) => v.trim());
-          return hasServerContent ? serverLayers : prev;
+    const applyWorkspace = (data: Record<string, string | number | null>) => {
+      setTranslationId(Number(data.id));
+      const serverLayers: TranslationLayer = {
+        originalText: String(data.originalText ?? ""),
+        transliteration: String(data.transliteration ?? ""),
+        morphologyNotes: String(data.morphologyNotes ?? ""),
+        literalTranslation: String(data.literalTranslation ?? ""),
+        readableTranslation: String(data.readableTranslation ?? ""),
+        publishedTranslation: String(data.publishedTranslation ?? ""),
+        publishedTranslationAttribution: String(data.publishedTranslationAttribution ?? ""),
+        commentary: String(data.commentary ?? ""),
+        userInterpretation: String(data.userInterpretation ?? ""),
+        aiAssistance: String(data.aiAssistance ?? ""),
+      };
+      setLayers((prev) => {
+        const hasServerContent = Object.values(serverLayers).some((v) => v.trim());
+        return hasServerContent ? serverLayers : prev;
+      });
+      setLoadingWorkspace(false);
+      initializedRef.current = true;
+    };
+
+    fetch(`/api/translations?sourceId=${sourceId}`, { credentials: "include" })
+      .then(async (response) => {
+        if (response.ok) return response.json();
+        if (response.status !== 404) throw new Error("Could not load workspace");
+        const created = await fetch("/api/translations", {
+          method: "POST",
+          credentials: "include",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ sourceId }),
         });
-        setLoadingWorkspace(false);
-        initializedRef.current = true;
+        if (!created.ok) throw new Error("Could not create workspace");
+        return created.json();
       })
+      .then(applyWorkspace)
       .catch(() => {
         setLoadingWorkspace(false);
         initializedRef.current = true;
       });
-  }, [sourceId]);
+  }, [sourceId, user]);
 
   // Pre-fill Original Text — prefer dedicated original-script field, fall back to excerpt
   useEffect(() => {
@@ -277,6 +291,7 @@ export function TranslationWorkspacePage() {
     setSaving(true);
     fetch(`/api/translations/${translationId}`, {
       method: "PATCH",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(debouncedLayers),
     })
@@ -285,11 +300,11 @@ export function TranslationWorkspacePage() {
         setLastSaved(new Date());
         setSaving(false);
         try {
-          localStorage.setItem(STORAGE_KEY(sourceId), JSON.stringify({ layers: debouncedLayers, translationId }));
+          if (user) localStorage.setItem(storageKeyFor(user.id, sourceId), JSON.stringify({ layers: debouncedLayers, translationId }));
         } catch {}
       })
       .catch(() => setSaving(false));
-  }, [debouncedLayers, translationId, sourceId]);
+  }, [debouncedLayers, translationId, sourceId, user]);
 
   const updateLayer = useCallback((key: keyof TranslationLayer, value: string) => {
     setLayers((prev) => ({ ...prev, [key]: value }));
@@ -373,33 +388,9 @@ export function TranslationWorkspacePage() {
   };
 
   const handlePrintPdf = () => {
-    const md = buildMarkdown();
-    // Convert minimal markdown → HTML for the print window
-    const htmlLines = md
-      .split("\n")
-      .map((l) => {
-        if (l.startsWith("## ")) return `<h2>${l.slice(3)}</h2>`;
-        if (l.startsWith("# ")) return `<h1>${l.slice(2)}</h1>`;
-        if (l.startsWith("> ")) return `<blockquote>${l.slice(2)}</blockquote>`;
-        if (l.startsWith("---")) return `<hr/>`;
-        if (l.trim() === "") return `<br/>`;
-        // Bold **text**
-        const bolded = l.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\*(.*?)\*/g, "<em>$1</em>");
-        return `<p>${bolded}</p>`;
-      })
-      .join("");
     const win = window.open("", "_blank");
     if (!win) { toast({ title: "Popup blocked", description: "Allow popups to use print-to-PDF.", variant: "destructive" }); return; }
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${source?.title ?? "Translation"}</title>
-      <style>
-        body { font-family: Georgia, serif; max-width: 740px; margin: 40px auto; color: #111; line-height: 1.7; }
-        h1 { font-size: 1.8rem; border-bottom: 2px solid #ccc; padding-bottom: .4rem; }
-        h2 { font-size: 1.1rem; color: #444; margin-top: 1.6rem; }
-        blockquote { border-left: 4px solid #e05; padding: .3rem .8rem; background: #fff5f5; color: #700; margin: .5rem 0; }
-        hr { border: none; border-top: 1px solid #ddd; margin: 1.5rem 0; }
-        p { margin: .25rem 0; } br { display: none; }
-        @media print { body { margin: 1cm; } }
-      </style></head><body>${htmlLines}</body></html>`);
+    win.document.write(buildPrintDocument(source?.title ?? "Translation", buildMarkdown()));
     win.document.close();
     setTimeout(() => win.print(), 300);
   };

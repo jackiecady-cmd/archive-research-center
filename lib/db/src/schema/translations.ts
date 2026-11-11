@@ -4,18 +4,28 @@ import {
   integer,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+import { usersTable } from "./users";
+import { sourcesTable } from "./sources";
 
 /**
  * Translation workspace records — one row per (researcher × source).
  * Each field is a distinct epistemic layer. Layers must never be merged
  * in the UI; AI-generated content must carry an explicit disclaimer.
  */
-export const translationsTable = pgTable("translations", {
+export const translationsTable = pgTable(
+  "translations",
+  {
   id: serial("id").primaryKey(),
-  sourceId: integer("source_id").notNull(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  sourceId: integer("source_id")
+    .notNull()
+    .references(() => sourcesTable.id, { onDelete: "cascade" }),
 
   // ── Source layer (can override excerpt for translation focus) ──────────
   originalText: text("original_text"),
@@ -43,7 +53,11 @@ export const translationsTable = pgTable("translations", {
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-});
+  },
+  (table) => [
+    uniqueIndex("translations_user_source_unique").on(table.userId, table.sourceId),
+  ],
+);
 
 export const insertTranslationSchema = createInsertSchema(translationsTable).omit({
   id: true,

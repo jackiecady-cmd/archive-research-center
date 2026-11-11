@@ -10,6 +10,7 @@
  */
 
 import { db, sourcesTable } from "./index.js";
+import { ensureSeedUser } from "./seed-user.js";
 import {
   researchProjectsTable,
   savedSourcesTable,
@@ -31,6 +32,8 @@ async function findSourceByTitle(title: string): Promise<number | null> {
   return rows[0]?.id ?? null;
 }
 
+let seedUserId = 0;
+
 async function findOrCreateProject(title: string, description: string, researcherType: string) {
   const existing = await db
     .select()
@@ -39,7 +42,7 @@ async function findOrCreateProject(title: string, description: string, researche
   if (existing.length > 0) return existing[0];
   const [created] = await db
     .insert(researchProjectsTable)
-    .values({ title, description, researcherType })
+    .values({ title, description, researcherType, userId: seedUserId })
     .returning();
   return created;
 }
@@ -48,6 +51,8 @@ async function findOrCreateProject(title: string, description: string, researche
 
 async function seed() {
   console.log("🌱  Starting research seed…");
+  const seedUser = await ensureSeedUser();
+  seedUserId = seedUser.id;
 
   // ── Source IDs (looked up by title) ──────────────────────────────────────
 
@@ -93,7 +98,7 @@ async function seed() {
       .where(eq(savedSourcesTable.projectId, p1.id));
     const alreadyHas = already.some((r) => r.sourceId === sourceId);
     if (!alreadyHas) {
-      await db.insert(savedSourcesTable).values({ projectId: p1.id, sourceId });
+      await db.insert(savedSourcesTable).values({ projectId: p1.id, sourceId, userId: seedUserId });
       console.log(`    ✔ Saved source ${sourceId} → project ${p1.id}`);
     } else {
       console.log(`    – Source ${sourceId} already saved`);
@@ -135,7 +140,7 @@ Three independent high-confidence sources (Tacitus, Pliny, Josephus core) conver
       .where(eq(notesTable.projectId, p1.id));
     const alreadyHas = existing.some((n) => n.title === note.title);
     if (!alreadyHas) {
-      await db.insert(notesTable).values({ projectId: p1.id, ...note });
+      await db.insert(notesTable).values({ projectId: p1.id, userId: seedUserId, ...note });
       console.log(`    ✔ Note: ${note.title}`);
     } else {
       console.log(`    – Note already exists: ${note.title}`);
@@ -156,7 +161,7 @@ Three independent high-confidence sources (Tacitus, Pliny, Josephus core) conver
     const already = await db.select().from(savedSourcesTable).where(eq(savedSourcesTable.projectId, p2.id));
     const alreadyHas = already.some((r) => r.sourceId === sourceId);
     if (!alreadyHas) {
-      await db.insert(savedSourcesTable).values({ projectId: p2.id, sourceId });
+      await db.insert(savedSourcesTable).values({ projectId: p2.id, sourceId, userId: seedUserId });
       console.log(`    ✔ Saved source ${sourceId} → project ${p2.id}`);
     } else {
       console.log(`    – Source ${sourceId} already saved`);
@@ -200,7 +205,7 @@ If Patrick Burke was born c.1848 in Ireland, this is consistent with the pre-Fam
     const existing = await db.select().from(notesTable).where(eq(notesTable.projectId, p2.id));
     const alreadyHas = existing.some((n) => n.title === note.title);
     if (!alreadyHas) {
-      await db.insert(notesTable).values({ projectId: p2.id, ...note });
+      await db.insert(notesTable).values({ projectId: p2.id, userId: seedUserId, ...note });
       console.log(`    ✔ Note: ${note.title}`);
     } else {
       console.log(`    – Note already exists: ${note.title}`);
@@ -307,7 +312,7 @@ If Patrick Burke was born c.1848 in Ireland, this is consistent with the pre-Fam
     } else {
       const [created] = await db
         .insert(claimCardsTable)
-        .values(claimFields)
+        .values({ ...claimFields, userId: seedUserId })
         .returning();
       claimId = created.id;
       console.log(`  ✔ Claim: ${claimFields.title}`);
@@ -326,7 +331,7 @@ If Patrick Burke was born c.1848 in Ireland, this is consistent with the pre-Fam
       if (!alreadyHas) {
         await db
           .insert(evidenceTable)
-          .values({ claimCardId: claimId, ...ev });
+          .values({ claimCardId: claimId, userId: seedUserId, ...ev });
         console.log(`    ✔ Evidence: source ${ev.sourceId} → ${ev.role}`);
       } else {
         console.log(`    – Evidence already exists: source ${ev.sourceId}`);

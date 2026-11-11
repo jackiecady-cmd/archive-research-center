@@ -5,6 +5,7 @@ import {
   FlaskConical, Languages, GitBranch, Menu, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 const NAV_ITEMS = [
@@ -40,6 +41,7 @@ function NavContents({
   location: string;
   onNavigate?: () => void;
 }) {
+  const { user, loading } = useAuth();
   return (
     <nav className="flex-1 overflow-y-auto px-4 pb-4 space-y-8">
       {SECTIONS.map(({ key, label }) => {
@@ -71,6 +73,13 @@ function NavContents({
           </div>
         );
       })}
+      <div className="px-2 pt-2 text-xs text-sidebar-foreground/70">
+        {loading ? "Checking session…" : user ? (
+          <span>Signed in as {user.displayName}</span>
+        ) : (
+          <Link href="/sign-in" onClick={onNavigate} className="underline">Sign in</Link>
+        )}
+      </div>
     </nav>
   );
 }

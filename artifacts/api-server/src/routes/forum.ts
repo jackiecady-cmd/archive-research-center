@@ -2,6 +2,8 @@ import { Router } from "express";
 import { eq, sql, desc } from "drizzle-orm";
 import { db, forumThreadsTable, forumRepliesTable } from "@workspace/db";
 import { CreateForumThreadBody, CreateForumReplyBody } from "@workspace/api-zod";
+import { currentUser } from "../auth/middleware";
+import { parseIntParam, sendValidationError } from "../lib/http";
 
 const router = Router();
 
@@ -58,9 +60,18 @@ router.get("/forum/threads", async (req, res): Promise<void> => {
 
 // POST /forum/threads
 router.post("/forum/threads", async (req, res): Promise<void> => {
+  const user = currentUser(req);
+  if (!user) { res.status(401).json({ error: "Authentication required" }); return; }
   const parsed = CreateForumThreadBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [row] = await db.insert(forumThreadsTable).values(parsed.data).returning();
+  if (!parsed.success) { sendValidationError(res, parsed.error); return; }
+  const [row] = await db.insert(forumThreadsTable).values({
+    title: parsed.data.title,
+    content: parsed.data.content,
+    category: parsed.data.category,
+    tags: parsed.data.tags ?? [],
+    authorName: user.displayName,
+    userId: user.id,
+  }).returning();
   res.status(201).json(formatThread(row));
 });
 
@@ -83,13 +94,20 @@ router.get("/forum/threads/:id", async (req, res): Promise<void> => {
 
 // POST /forum/threads/:threadId/replies
 router.post("/forum/threads/:threadId/replies", async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.threadId) ? req.params.threadId[0] : req.params.threadId;
-  const threadId = parseInt(raw, 10);
-  if (isNaN(threadId)) { res.status(400).json({ error: "Invalid threadId" }); return; }
+  const user = currentUser(req);
+  if (!user) { res.status(401).json({ error: "Authentication required" }); return; }
+  const threadId = parseIntParam(req.params.threadId);
+  if (threadId === null) { res.status(400).json({ error: "Invalid threadId" }); return; }
   const parsed = CreateForumReplyBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [row] = await db.insert(forumRepliesTable).values({ threadId, ...parsed.data }).returning();
-  // Update thread lastActivityAt
+  if (!parsed.success) { sendValidationError(res, parsed.error); return; }
+  const [thread] = await db.select({ id: forumThreadsTable.id }).from(forumThreadsTable).where(eq(forumThreadsTable.id, threadId));
+  if (!thread) { res.status(404).json({ error: "Not found" }); return; }
+  const [row] = await db.insert(forumRepliesTable).values({
+    threadId,
+    content: parsed.data.content,
+    authorName: user.displayName,
+    userId: user.id,
+  }).returning();
   await db.update(forumThreadsTable).set({ lastActivityAt: new Date() }).where(eq(forumThreadsTable.id, threadId));
   res.status(201).json({
     id: row.id, threadId: row.threadId, content: row.content,

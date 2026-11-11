@@ -1,5 +1,7 @@
 import { Router, type IRouter } from "express";
+import { authenticateUnlessPublic } from "../auth/middleware";
 import healthRouter from "./health";
+import authRouter from "./auth";
 import sourcesRouter from "./sources";
 import collectionsRouter from "./collections";
 import repositoriesRouter from "./repositories";
@@ -12,6 +14,8 @@ import translationsRouter from "./translations";
 
 const router: IRouter = Router();
 
+router.use(authenticateUnlessPublic);
+router.use(authRouter);
 router.use(healthRouter);
 router.use(sourcesRouter);
 router.use(collectionsRouter);

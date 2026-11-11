@@ -3,6 +3,7 @@ import {
   useGetSource,
   getGetSourceQueryKey,
   useListResearchProjects,
+  getListResearchProjectsQueryKey,
   useSaveSource,
   useCreateResearchProject,
   useUpdateSource,
@@ -23,23 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-
-// ── Mock editor-mode gate ─────────────────────────────────────────────────────
-// Toggled from the Account page. Enables the original-language edit panel on
-// source records without requiring real authentication.
-const EDITOR_KEY = "arc_editor_mode";
-
-function useEditorMode() {
-  const [enabled, setEnabled] = useState(() => {
-    try { return localStorage.getItem(EDITOR_KEY) === "1"; } catch { return false; }
-  });
-  useEffect(() => {
-    const handler = () => setEnabled(localStorage.getItem(EDITOR_KEY) === "1");
-    window.addEventListener("arc_editor_mode_change", handler);
-    return () => window.removeEventListener("arc_editor_mode_change", handler);
-  }, []);
-  return enabled;
-}
+import { canEditCatalog, useAuth } from "@/lib/auth";
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
@@ -47,7 +32,8 @@ export function SourceDetailPage() {
   const params = useParams();
   const id = parseInt(params.id || "0", 10);
   const { data: source, isLoading } = useGetSource(id, { query: { enabled: !!id, queryKey: getGetSourceQueryKey(id) } });
-  const isEditor = useEditorMode();
+  const { user } = useAuth();
+  const isEditor = canEditCatalog(user);
 
   if (isLoading) {
     return (
@@ -409,10 +395,13 @@ function OriginalLanguageSection({
 // ── Save-to-project dialog ────────────────────────────────────────────────────
 
 function SaveToProjectDialog({ sourceId }: { sourceId: number }) {
+  const { user } = useAuth();
   const [projectId, setProjectId] = useState<string>("");
   const [newProjectName, setNewProjectName] = useState("");
   const [open, setOpen] = useState(false);
-  const { data: projects } = useListResearchProjects();
+  const { data: projects } = useListResearchProjects({
+    query: { enabled: !!user, queryKey: getListResearchProjectsQueryKey() },
+  });
   const saveSource = useSaveSource();
   const createProject = useCreateResearchProject();
   const { toast } = useToast();
@@ -461,6 +450,14 @@ function SaveToProjectDialog({ sourceId }: { sourceId: number }) {
 
   const isPending = saveSource.isPending || createProject.isPending;
   const canSave = projectId && (projectId !== "new" || newProjectName.trim().length > 0);
+
+  if (!user) {
+    return (
+      <Button asChild>
+        <Link href="/sign-in"><BookmarkPlus className="mr-2 h-4 w-4" /> Sign in to save</Link>
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) { setProjectId(""); setNewProjectName(""); } }}>

@@ -3,12 +3,15 @@
  * Run via: pnpm --filter @workspace/db run seed:forum
  *
  * Creates 4 threads with 2–3 replies each, tied to existing archive sources.
- * Authors are mock researcher personas — no real auth required.
+ * Rows are owned by the seed user. Display names stay the demo personas.
  */
 
 import { db } from "./index.js";
 import { forumThreadsTable, forumRepliesTable } from "./schema/forum.js";
+import { ensureSeedUser } from "./seed-user.js";
 import { eq } from "drizzle-orm";
+
+let seedUserId = 0;
 
 async function findOrCreateThread(
   title: string,
@@ -27,7 +30,7 @@ async function findOrCreateThread(
   }
   const [created] = await db
     .insert(forumThreadsTable)
-    .values({ title, content, category, authorName, tags })
+    .values({ title, content, category, authorName, tags, userId: seedUserId })
     .returning();
   console.log(`  ✔ Thread: "${title}"`);
   return created;
@@ -48,12 +51,14 @@ async function addReply(
     console.log(`    – Reply by ${authorName} already exists`);
     return;
   }
-  await db.insert(forumRepliesTable).values({ threadId, content, authorName });
+  await db.insert(forumRepliesTable).values({ threadId, content, authorName, userId: seedUserId });
   console.log(`    ✔ Reply by ${authorName}`);
 }
 
 async function seed() {
   console.log("🌱  Starting forum seed…");
+  const seedUser = await ensureSeedUser();
+  seedUserId = seedUser.id;
 
   // ── Thread 1: Tacitus Annals XV.44 authenticity ───────────────────────────
   const t1 = await findOrCreateThread(

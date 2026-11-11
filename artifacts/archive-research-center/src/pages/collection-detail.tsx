@@ -78,14 +78,14 @@ export function CollectionDetailPage() {
       ...(debouncedQ ? { q: debouncedQ } : {}),
       ...(sourceType ? { sourceType } : {}),
       ...(confidence ? { confidence } : {}),
-      limit: 100,
+      limit: 50,
     },
     { query: { enabled: !!slug, queryKey: getListSourcesQueryKey({
       collection: slug,
       ...(debouncedQ ? { q: debouncedQ } : {}),
       ...(sourceType ? { sourceType } : {}),
       ...(confidence ? { confidence } : {}),
-      limit: 100,
+      limit: 50,
     }) } }
   );
 

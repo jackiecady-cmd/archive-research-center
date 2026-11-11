@@ -55,7 +55,7 @@ function useDebounce<T>(value: T, delay: number): T {
 export function TranslationPage() {
   // Source browser state
   const [sourceQ, setSourceQ] = useState("");
-  const { data, isLoading: sourcesLoading } = useListSources({ page: 1, limit: 100 });
+  const { data, isLoading: sourcesLoading } = useListSources({ page: 1, limit: 50 });
 
   // Workspace search state
   const [wsQ, setWsQ] = useState("");
@@ -68,10 +68,13 @@ export function TranslationPage() {
     const url = q.trim()
       ? `/api/translations/workspaces?q=${encodeURIComponent(q)}&limit=20`
       : `/api/translations/workspaces?limit=12`;
-    fetch(url)
-      .then((r) => r.json())
+    fetch(url, { credentials: "include" })
+      .then(async (r) => {
+        if (!r.ok) return [] as WorkspaceSummary[];
+        return r.json() as Promise<WorkspaceSummary[]>;
+      })
       .then((rows: WorkspaceSummary[]) => {
-        setWorkspaces(rows);
+        setWorkspaces(Array.isArray(rows) ? rows : []);
         setWsLoading(false);
       })
       .catch(() => setWsLoading(false));
