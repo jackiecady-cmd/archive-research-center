@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SourceTypeBadge, ConfidenceBadge } from "@/components/source-badges";
+import { TranslationDisclosure } from "@/components/translation-disclosure";
 import {
-  Languages, Search, ArrowRight, BookOpen, AlertTriangle,
+  Languages, Search, ArrowRight, BookOpen,
   FileText, Clock, Layers, History, RotateCcw,
 } from "lucide-react";
 
@@ -36,7 +37,6 @@ const LAYER_LEGEND = [
   { label: "Linguistic",   color: "bg-teal-500",    desc: "Transliteration, morphology" },
   { label: "Translation",  color: "bg-emerald-500", desc: "Literal, readable, published" },
   { label: "Interpretive", color: "bg-amber-500",   desc: "Commentary, researcher synthesis" },
-  { label: "AI",           color: "bg-rose-500",    desc: "AI drafts — never source evidence" },
 ];
 
 // ── Debounce ──────────────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ function useDebounce<T>(value: T, delay: number): T {
 export function TranslationPage() {
   // Source browser state
   const [sourceQ, setSourceQ] = useState("");
-  const { data, isLoading: sourcesLoading } = useListSources({ page: 1, limit: 100 });
+  const { data, isLoading: sourcesLoading } = useListSources({ page: 1, limit: 50 });
 
   // Workspace search state
   const [wsQ, setWsQ] = useState("");
@@ -68,10 +68,13 @@ export function TranslationPage() {
     const url = q.trim()
       ? `/api/translations/workspaces?q=${encodeURIComponent(q)}&limit=20`
       : `/api/translations/workspaces?limit=12`;
-    fetch(url)
-      .then((r) => r.json())
+    fetch(url, { credentials: "include" })
+      .then(async (r) => {
+        if (!r.ok) return [] as WorkspaceSummary[];
+        return r.json() as Promise<WorkspaceSummary[]>;
+      })
       .then((rows: WorkspaceSummary[]) => {
-        setWorkspaces(rows);
+        setWorkspaces(Array.isArray(rows) ? rows : []);
         setWsLoading(false);
       })
       .catch(() => setWsLoading(false));
@@ -99,18 +102,19 @@ export function TranslationPage() {
         </div>
         <h1 className="text-3xl sm:text-4xl font-serif">Translation & Manuscript Analysis</h1>
         <p className="text-muted-foreground leading-relaxed">
-          Open a workspace for any archive source. Nine epistemic layers are kept strictly
-          separate — from original script through published translations to researcher
-          interpretation — so no layer can be mistaken for another.
+          Open a workspace for any archive source. The layers stay separate, from the
+          original script through published translations to the researcher's own
+          interpretation, so one layer cannot be mistaken for another.
         </p>
+        <TranslationDisclosure />
       </header>
 
       {/* Epistemic layer system */}
       <section className="rounded-xl border border-border bg-secondary/20 p-5 sm:p-6 space-y-4">
         <div className="flex items-center gap-2 text-sm font-semibold">
-          <Layers className="h-4 w-4 text-primary" /> Nine visible epistemic layers
+          <Layers className="h-4 w-4 text-primary" /> Workspace layers
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {LAYER_LEGEND.map((l) => (
             <div key={l.label} className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
@@ -120,10 +124,6 @@ export function TranslationPage() {
               <p className="text-xs text-muted-foreground leading-tight">{l.desc}</p>
             </div>
           ))}
-        </div>
-        <div className="flex items-start gap-2 pt-1 border-t border-border text-xs text-muted-foreground leading-relaxed">
-          <AlertTriangle className="h-3.5 w-3.5 text-rose-600 flex-shrink-0 mt-0.5" />
-          <span>AI content is always confined to the AI layer, labelled "Not Evidence," and never shown alongside source text without a disclaimer.</span>
         </div>
       </section>
 
@@ -246,9 +246,12 @@ export function TranslationPage() {
                 </CardHeader>
                 <CardContent className="flex flex-col flex-1 gap-3">
                   {ws.preview && (
-                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 font-mono bg-secondary/30 rounded p-2">
-                      {ws.preview}
-                    </p>
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 font-mono bg-secondary/30 rounded p-2">
+                        {ws.preview}
+                      </p>
+                      <TranslationDisclosure />
+                    </div>
                   )}
                   <Button asChild size="sm" className="w-full mt-auto gap-2">
                     <Link href={`/translation/${ws.sourceId}`}>
@@ -358,7 +361,7 @@ export function TranslationPage() {
           </li>
           <li className="flex gap-2">
             <span className="text-primary font-bold flex-shrink-0">4.</span>
-            The AI Assistance layer is available for drafts — always labelled "Not Evidence" and kept separate.
+            Researcher interpretation stays labelled as your analysis, separate from the source text.
           </li>
         </ul>
       </section>

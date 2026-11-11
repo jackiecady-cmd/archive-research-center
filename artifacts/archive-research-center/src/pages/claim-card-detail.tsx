@@ -176,7 +176,7 @@ export function ClaimCardDetailPage() {
           <Info className="h-3.5 w-3.5 flex-shrink-0 mt-0.5 text-primary/60" />
           <span>
             <strong className="text-foreground font-semibold">Evidence separation:</strong>{" "}
-            This trail links primary archive sources only. Each card shows the source record, its role relative to the claim, and the researcher's rationale — kept strictly separate from translation, scholarly commentary, and AI assistance, which appear on the source's own detail page.
+            This trail links primary archive sources only. Each card shows the source record, its role relative to the claim, and the researcher's rationale — kept strictly separate from translation and scholarly commentary on the source's own detail page.
           </span>
         </div>
 
@@ -257,7 +257,7 @@ function AddEvidenceDialog({ claimCardId, projectId }: { claimCardId: number; pr
   const [role, setRole] = useState<"supports" | "contradicts" | "contextualizes" | "neutral">("supports");
   const [summary, setSummary] = useState("");
 
-  const { data: sources } = useListSources({ limit: 100 });
+  const { data: sources } = useListSources({ limit: 50 });
   const add = useAddEvidence();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -324,7 +324,7 @@ function AddEvidenceDialog({ claimCardId, projectId }: { claimCardId: number; pr
           <div className="space-y-2">
             <label className="text-sm font-medium">Researcher Rationale</label>
             <p className="text-xs text-muted-foreground">
-              Explain how this primary source relates to the claim. This is your researcher analysis — not AI-generated content.
+              Explain how this primary source relates to the claim. This is your own analysis of the record.
             </p>
             <Textarea
               placeholder="Explain how this source relates to the claim…"

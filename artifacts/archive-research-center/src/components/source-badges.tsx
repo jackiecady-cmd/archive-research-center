@@ -8,7 +8,6 @@ export function SourceTypeBadge({ type }: { type: Source['sourceType'] }) {
     translation: "bg-teal-900/10 text-teal-900 border-teal-900/20 dark:bg-teal-400/10 dark:text-teal-400 dark:border-teal-400/20",
     scholarship: "bg-amber-900/10 text-amber-900 border-amber-900/20 dark:bg-amber-400/10 dark:text-amber-400 dark:border-amber-400/20",
     interpretation: "bg-purple-900/10 text-purple-900 border-purple-900/20 dark:bg-purple-400/10 dark:text-purple-400 dark:border-purple-400/20",
-    ai_assistance: "bg-slate-900/10 text-slate-900 border-slate-900/20 dark:bg-slate-400/10 dark:text-slate-400 dark:border-slate-400/20",
     conclusion: "bg-green-900/10 text-green-900 border-green-900/20 dark:bg-green-400/10 dark:text-green-400 dark:border-green-400/20"
   };
 
@@ -17,7 +16,6 @@ export function SourceTypeBadge({ type }: { type: Source['sourceType'] }) {
     translation: "Translation",
     scholarship: "Scholarship",
     interpretation: "Interpretation",
-    ai_assistance: "AI Assistance",
     conclusion: "Conclusion"
   };
 

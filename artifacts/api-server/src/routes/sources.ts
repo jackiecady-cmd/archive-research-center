@@ -6,6 +6,13 @@ import {
   CreateSourceBody,
   UpdateSourceBody,
 } from "@workspace/api-zod";
+import { requireEditor } from "../auth/middleware";
+import { sendValidationError } from "../lib/http";
+import { likeContains, parseListLimit, parseListPage } from "../lib/security";
+import { TRANSLATION_DISCLOSURE } from "@workspace/config";
+import { isCitationOnly } from "@workspace/config/legal";
+import { visibleExcerpt, visibleOriginalText } from "../lib/holding";
+import { publicSourceType } from "../lib/source-type";
 
 const router = Router();
 
@@ -31,7 +38,7 @@ function formatSource(
   return {
     id: row.id,
     title: row.title,
-    sourceType: row.sourceType,
+    sourceType: publicSourceType(row.sourceType),
     collectionSlug: row.collectionSlug ?? null,
     collectionName: collectionName ?? null,
     repository: formatRepository(repository),
@@ -47,8 +54,9 @@ function formatSource(
     availability: row.availability,
     rightsStatement: row.rightsStatement ?? null,
     description: row.description ?? null,
-    excerpt: row.excerpt ?? null,
-    originalLanguageText: row.originalLanguageText ?? null,
+    excerpt: visibleExcerpt(row),
+    translationDisclosure: TRANSLATION_DISCLOSURE,
+    originalLanguageText: visibleOriginalText(row),
     externalUrl: row.externalUrl ?? null,
     tags: row.tags,
     yearApprox: row.yearApprox ?? null,
@@ -60,7 +68,7 @@ function formatSource(
 router.get("/sources", async (req, res): Promise<void> => {
   const params = ListSourcesQueryParams.safeParse(req.query);
   if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+    sendValidationError(res, params.error);
     return;
   }
   const {
@@ -70,14 +78,34 @@ router.get("/sources", async (req, res): Promise<void> => {
 
   const conditions = [];
 
-  // Full-text search across title, description, and excerpt (OR logic)
+  // Citation-only, CDLI, and CC BY-NC records match title and citation fields only.
+  // Excerpt and original-language text are not searchable, so a hit cannot confirm hidden text.
   if (q) {
+    const pattern = likeContains(q);
+    const note = sql`lower(concat_ws(' ', ${sourcesTable.rightsStatement}, ${sourcesTable.description}, ${sourcesTable.provenance}, ${sourcesTable.externalUrl}))`;
+    const hiddenSourceText = sql`(
+      lower(replace(coalesce(${sourcesTable.availability}, ''), '_', '-')) in ('restricted', 'blocked', 'catalog-only', 'reference-only', 'link-only')
+      OR lower(replace(coalesce(${sourcesTable.repositoryAccessStatus}, ''), '_', '-')) in ('restricted', 'blocked', 'catalog-only', 'reference-only', 'link-only')
+      OR ${note} ~ 'link-only|reference-only|catalogue reference only|catalog reference only|catalog-only|catalogue-only|\\mcdli\\M|cuneiform digital library'
+      OR (${note} ~ 'cc[[:space:]]*by-nc|by-nc' AND ${note} !~ 'omitted|no manuscript image|no image|no photograph|not included')
+    )`;
     conditions.push(
       or(
-        ilike(sourcesTable.title, `%${q}%`),
-        ilike(sourcesTable.description, `%${q}%`),
-        ilike(sourcesTable.excerpt, `%${q}%`),
-      )!
+        ilike(sourcesTable.title, pattern),
+        ilike(sourcesTable.author, pattern),
+        ilike(sourcesTable.dateLabel, pattern),
+        ilike(sourcesTable.provenance, pattern),
+        ilike(sourcesTable.rightsStatement, pattern),
+        ilike(sourcesTable.externalUrl, pattern),
+        and(
+          sql`NOT ${hiddenSourceText}`,
+          or(
+            ilike(sourcesTable.description, pattern),
+            ilike(sourcesTable.excerpt, pattern),
+            ilike(sourcesTable.originalLanguageText, pattern),
+          ),
+        ),
+      )!,
     );
   }
 
@@ -104,8 +132,19 @@ router.get("/sources", async (req, res): Promise<void> => {
   if (yearTo !== undefined) conditions.push(lte(sourcesTable.yearApprox, yearTo));
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
-  const pageNum = Number(page);
-  const limitNum = Number(limit);
+  const pageNum = parseListPage(page);
+  const limitNum = parseListLimit(limit, 20);
+  if (pageNum === null || limitNum === null) {
+    res.status(400).json({
+      error: "Validation failed",
+      formErrors: [],
+      fieldErrors: {
+        ...(pageNum === null ? { page: ["page must be an integer greater than or equal to 1"] } : {}),
+        ...(limitNum === null ? { limit: ["limit must be an integer from 1 to 50"] } : {}),
+      },
+    });
+    return;
+  }
   const offset = (pageNum - 1) * limitNum;
 
   const [rows, countResult] = await Promise.all([
@@ -143,10 +182,10 @@ router.get("/sources", async (req, res): Promise<void> => {
 });
 
 // POST /sources
-router.post("/sources", async (req, res): Promise<void> => {
+router.post("/sources", requireEditor, async (req, res): Promise<void> => {
   const parsed = CreateSourceBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+    sendValidationError(res, parsed.error);
     return;
   }
   const [row] = await db.insert(sourcesTable).values(parsed.data).returning();
@@ -168,10 +207,49 @@ router.get("/sources/stats", async (req, res): Promise<void> => {
 
   res.json({
     totalSources: total[0]?.count ?? 0,
-    byType: byType.map((r) => ({ type: r.type, count: r.count })),
+    byType: [...byType.reduce((counts, row) => {
+      const type = publicSourceType(row.type);
+      counts.set(type, (counts.get(type) ?? 0) + row.count);
+      return counts;
+    }, new Map<string, number>())].map(([type, count]) => ({ type, count })),
     byConfidence: byConfidence.map((r) => ({ confidence: r.confidence, count: r.count })),
     byCollection: byCollection.filter((r) => r.collection).map((r) => ({ collection: r.collection!, count: r.count })),
     byAvailability: byAvailability.map((r) => ({ availability: r.availability, count: r.count })),
+  });
+});
+
+router.get("/sources/:id/export", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw ?? "", 10);
+  if (Number.isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  const [row] = await db.select().from(sourcesTable).where(eq(sourcesTable.id, id));
+  if (!row) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  const citationOnly = isCitationOnly(row);
+  const citation = {
+    citationOnly,
+    title: row.title,
+    author: row.author ?? null,
+    dateLabel: row.dateLabel ?? null,
+    provenance: row.provenance,
+    rightsStatement: row.rightsStatement ?? null,
+    externalUrl: row.externalUrl ?? null,
+    availability: row.availability,
+    repositoryAccessStatus: row.repositoryAccessStatus ?? null,
+  };
+  if (citationOnly) {
+    res.json(citation);
+    return;
+  }
+  res.json({
+    ...citation,
+    excerpt: visibleExcerpt(row),
+    originalLanguageText: visibleOriginalText(row),
   });
 });
 
@@ -203,7 +281,7 @@ router.get("/sources/:id", async (req, res): Promise<void> => {
 });
 
 // PATCH /sources/:id — update editable fields (editor workflow)
-router.patch("/sources/:id", async (req, res): Promise<void> => {
+router.patch("/sources/:id", requireEditor, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
   if (isNaN(id)) {
@@ -213,7 +291,7 @@ router.patch("/sources/:id", async (req, res): Promise<void> => {
 
   const parsed = UpdateSourceBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+    sendValidationError(res, parsed.error);
     return;
   }
 

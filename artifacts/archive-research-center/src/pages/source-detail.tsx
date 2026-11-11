@@ -3,6 +3,7 @@ import {
   useGetSource,
   getGetSourceQueryKey,
   useListResearchProjects,
+  getListResearchProjectsQueryKey,
   useSaveSource,
   useCreateResearchProject,
   useUpdateSource,
@@ -11,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { SourceTypeBadge, ConfidenceBadge, AvailabilityBadge, RepositoryAccessBadge } from "@/components/source-badges";
+import { TranslationDisclosure } from "@/components/translation-disclosure";
+import { isCitationOnly } from "@workspace/config/legal";
 import {
   ExternalLink, BookmarkPlus, ArrowLeft, Building2, Quote,
   AlertTriangle, Languages, Pencil, Check, X,
@@ -23,23 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-
-// ── Mock editor-mode gate ─────────────────────────────────────────────────────
-// Toggled from the Account page. Enables the original-language edit panel on
-// source records without requiring real authentication.
-const EDITOR_KEY = "arc_editor_mode";
-
-function useEditorMode() {
-  const [enabled, setEnabled] = useState(() => {
-    try { return localStorage.getItem(EDITOR_KEY) === "1"; } catch { return false; }
-  });
-  useEffect(() => {
-    const handler = () => setEnabled(localStorage.getItem(EDITOR_KEY) === "1");
-    window.addEventListener("arc_editor_mode_change", handler);
-    return () => window.removeEventListener("arc_editor_mode_change", handler);
-  }, []);
-  return enabled;
-}
+import { canEditCatalog, useAuth } from "@/lib/auth";
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
@@ -47,7 +34,8 @@ export function SourceDetailPage() {
   const params = useParams();
   const id = parseInt(params.id || "0", 10);
   const { data: source, isLoading } = useGetSource(id, { query: { enabled: !!id, queryKey: getGetSourceQueryKey(id) } });
-  const isEditor = useEditorMode();
+  const { user } = useAuth();
+  const isEditor = canEditCatalog(user);
 
   if (isLoading) {
     return (
@@ -135,15 +123,33 @@ export function SourceDetailPage() {
               <Quote className="h-5 w-5 text-muted-foreground" />
               Excerpt / Description
             </h3>
-            <div className="prose prose-stone dark:prose-invert max-w-none">
-              <p className="text-lg leading-relaxed text-foreground/90 font-serif">
-                {source.excerpt || source.description}
+            {isCitationOnly(source) ? (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Citation and link only. The source text is not shown here.
+                {source.externalUrl ? (
+                  <>
+                    {" "}
+                    <a href={source.externalUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+                      Open the holding
+                    </a>
+                  </>
+                ) : null}
               </p>
-            </div>
+            ) : (
+              <>
+                {source.excerpt ? <TranslationDisclosure /> : null}
+                <div className="prose prose-stone dark:prose-invert max-w-none">
+                  <p className="text-lg leading-relaxed text-foreground/90 font-serif">
+                    {source.excerpt || source.description}
+                  </p>
+                </div>
+              </>
+            )}
           </section>
 
-          {/* Original-language text: display + editor panel */}
-          <OriginalLanguageSection source={source} isEditor={isEditor} sourceId={id} />
+          {isCitationOnly(source) ? null : (
+            <OriginalLanguageSection source={source} isEditor={isEditor} sourceId={id} />
+          )}
 
           <section>
             <h3 className="text-xl font-serif mb-4 flex items-center gap-2">
@@ -409,10 +415,13 @@ function OriginalLanguageSection({
 // ── Save-to-project dialog ────────────────────────────────────────────────────
 
 function SaveToProjectDialog({ sourceId }: { sourceId: number }) {
+  const { user } = useAuth();
   const [projectId, setProjectId] = useState<string>("");
   const [newProjectName, setNewProjectName] = useState("");
   const [open, setOpen] = useState(false);
-  const { data: projects } = useListResearchProjects();
+  const { data: projects } = useListResearchProjects({
+    query: { enabled: !!user, queryKey: getListResearchProjectsQueryKey() },
+  });
   const saveSource = useSaveSource();
   const createProject = useCreateResearchProject();
   const { toast } = useToast();
@@ -461,6 +470,14 @@ function SaveToProjectDialog({ sourceId }: { sourceId: number }) {
 
   const isPending = saveSource.isPending || createProject.isPending;
   const canSave = projectId && (projectId !== "new" || newProjectName.trim().length > 0);
+
+  if (!user) {
+    return (
+      <Button asChild>
+        <Link href="/sign-in"><BookmarkPlus className="mr-2 h-4 w-4" /> Sign in to save</Link>
+      </Button>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) { setProjectId(""); setNewProjectName(""); } }}>

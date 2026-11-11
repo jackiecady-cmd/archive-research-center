@@ -1,39 +1,80 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { UserCircle, Mail, Key, CreditCard, Pencil } from "lucide-react";
-import { Link } from "wouter";
+import { UserCircle, Mail, CreditCard, Shield } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { apiSend } from "@/lib/api";
+import { AccessPanel } from "@/components/access-panel";
 
-const EDITOR_KEY = "arc_editor_mode";
+const ROLE_LABEL = {
+  user: "Researcher",
+  editor: "Editor",
+  moderator: "Moderator",
+  admin: "Administrator",
+} as const;
 
-function dispatchEditorChange() {
-  window.dispatchEvent(new Event("arc_editor_mode_change"));
+const ACCESS_LABEL = {
+  free: "Free — signed-in research",
+  paid: "Paid access",
+  comp: "Comp — full access until revoked",
+} as const;
+
+function LegalPreview() {
+  const pages = useQuery({
+    queryKey: ["legal-pages", "preview"],
+    queryFn: async () => {
+      const result = await apiSend("/api/legal/pages");
+      if (!result.ok) return [];
+      return (result.json as { pages: { slug: string; title: string; preview: boolean }[] }).pages.filter((page) => page.preview);
+    },
+  });
+  if (!pages.data || pages.data.length === 0) return null;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-serif text-xl">Legal drafts</CardTitle>
+        <CardDescription>Administrator preview. These pages are not in the public navigation.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm">
+        {pages.data.map((page) => (
+          <div key={page.slug}>
+            <Link href={`/legal/${page.slug}`} className="underline underline-offset-4">{page.title}</Link>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
 }
 
 export function AccountPage() {
-  const [editorMode, setEditorMode] = useState(() => {
-    try { return localStorage.getItem(EDITOR_KEY) === "1"; } catch { return false; }
-  });
+  const { user, loading, logout } = useAuth();
 
-  useEffect(() => {
-    const handler = () => setEditorMode(localStorage.getItem(EDITOR_KEY) === "1");
-    window.addEventListener("arc_editor_mode_change", handler);
-    return () => window.removeEventListener("arc_editor_mode_change", handler);
-  }, []);
+  if (loading) {
+    return <div className="max-w-3xl mx-auto px-6 py-16 text-sm text-muted-foreground">Loading account…</div>;
+  }
 
-  const toggleEditorMode = () => {
-    const next = !editorMode;
-    try { localStorage.setItem(EDITOR_KEY, next ? "1" : "0"); } catch {}
-    setEditorMode(next);
-    dispatchEditorChange();
-  };
+  if (!user) {
+    return (
+      <div className="max-w-lg mx-auto px-6 py-16 space-y-4 text-center">
+        <h1 className="font-serif text-3xl">Account</h1>
+        <p className="text-sm text-muted-foreground">Sign in to see your account and role.</p>
+        <div className="flex justify-center gap-3">
+          <Button asChild><Link href="/sign-in">Sign in</Link></Button>
+          <Button variant="outline" asChild><Link href="/sign-up">Create account</Link></Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-serif text-foreground">Account Settings</h1>
-        <p className="text-muted-foreground mt-2">Manage your profile, credentials, and preferences.</p>
+      <header className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-serif text-foreground">Account</h1>
+          <p className="text-muted-foreground mt-2">Signed in as {user.displayName}.</p>
+        </div>
+        <Button variant="outline" onClick={() => { void logout(); }}>Sign out</Button>
       </header>
 
       <div className="grid md:grid-cols-3 gap-8 items-start">
@@ -42,92 +83,47 @@ export function AccountPage() {
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2"><UserCircle className="h-5 w-5" /> Profile</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">First Name</label>
-                  <Input defaultValue="Scholar" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Last Name</label>
-                  <Input defaultValue="User" />
-                </div>
+            <CardContent className="space-y-3 text-sm">
+              <div>
+                <div className="text-muted-foreground">Display name</div>
+                <div className="font-medium">{user.displayName}</div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Institutional Affiliation (Optional)</label>
-                <Input placeholder="e.g. University of Oxford or Independent" />
+              <div>
+                <div className="text-muted-foreground flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> Email</div>
+                <div className="font-medium">{user.email}</div>
               </div>
-              <Button>Save Profile</Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2"><Mail className="h-5 w-5" /> Credentials</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email Address</label>
-                <Input defaultValue="scholar@example.com" type="email" />
-              </div>
-              <div className="pt-4 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <div className="font-medium text-sm">Password</div>
-                  <div className="text-xs text-muted-foreground">Last changed 3 months ago</div>
-                </div>
-                <Button variant="outline" size="sm" className="self-start sm:self-auto"><Key className="h-4 w-4 mr-2" /> Update</Button>
+              <div>
+                <div className="text-muted-foreground">Access</div>
+                <div className="font-medium">{ACCESS_LABEL[user.entitlement]}</div>
               </div>
             </CardContent>
           </Card>
+          <AccessPanel />
+          {user.role === "admin" ? <LegalPreview /> : null}
         </div>
 
         <aside className="space-y-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2"><Shield className="h-5 w-5" /> Role</CardTitle>
+              <CardDescription>{ROLE_LABEL[user.role]}</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              {user.role === "moderator"
+                ? "You can hide posts, lock discussions, and suspend forum access. Each action is written to the administrator audit log."
+                : user.role === "user"
+                ? "Catalog edits are limited to editor and administrator accounts."
+                : "You can edit catalog records, including original-language text, provenance, and rights."}
+            </CardContent>
+          </Card>
           <Card className="bg-secondary/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2"><CreditCard className="h-5 w-5 text-primary" /> Membership</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Manage your billing, view past invoices, or upgrade your access tier.
-              </p>
+            <CardContent>
               <Button asChild className="w-full">
-                <Link href="/membership">Manage Subscription</Link>
+                <Link href="/membership">View plans</Link>
               </Button>
-            </CardContent>
-          </Card>
-
-          {/* Editor Mode — mock role toggle for demonstration */}
-          <Card className={editorMode ? "border-amber-400/60 bg-amber-50/30 dark:bg-amber-950/20" : ""}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Pencil className={`h-4 w-4 ${editorMode ? "text-amber-600" : "text-muted-foreground"}`} />
-                Editor Mode
-              </CardTitle>
-              <CardDescription className="text-xs leading-relaxed">
-                Enables the original-language text edit panel on source records. Demo feature — no real authentication required.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className={`text-xs px-3 py-2 rounded border font-medium ${
-                editorMode
-                  ? "bg-amber-100 border-amber-300 text-amber-800 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-300"
-                  : "bg-secondary border-border text-muted-foreground"
-              }`}>
-                {editorMode ? "✓ Editor mode active" : "Editor mode off"}
-              </div>
-              <Button
-                variant={editorMode ? "destructive" : "outline"}
-                size="sm"
-                className="w-full"
-                onClick={toggleEditorMode}
-              >
-                {editorMode ? "Disable Editor Mode" : "Enable Editor Mode"}
-              </Button>
-              {editorMode && (
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Open any source record to add or update its original-language text. Changes are saved immediately to the database.
-                </p>
-              )}
             </CardContent>
           </Card>
         </aside>

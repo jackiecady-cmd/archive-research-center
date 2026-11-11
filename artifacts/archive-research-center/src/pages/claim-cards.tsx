@@ -13,7 +13,7 @@ export function ClaimCardsPage() {
       <header>
         <h1 className="text-3xl sm:text-4xl font-serif text-foreground mb-3">Claim Cards</h1>
         <p className="text-muted-foreground text-lg max-w-2xl">
-          An epistemic ledger. Track historical, theological, and genealogical claims across your projects, and weigh the evidence for each.
+          An epistemic ledger. Track historical and theological claims across your projects, and weigh the evidence for each.
         </p>
       </header>
 

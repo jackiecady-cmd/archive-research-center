@@ -1,6 +1,9 @@
 import { Router } from "express";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { db, collectionsTable, repositoriesTable, sourcesTable } from "@workspace/db";
+import { TRANSLATION_DISCLOSURE } from "@workspace/config";
+import { visibleExcerpt } from "../lib/holding";
+import { publicSourceType } from "../lib/source-type";
 
 const router = Router();
 
@@ -21,10 +24,16 @@ function formatCollection(row: typeof collectionsTable.$inferSelect, sourceCount
 // GET /collections
 router.get("/collections", async (req, res): Promise<void> => {
   const cols = await db.select().from(collectionsTable).orderBy(desc(collectionsTable.featured));
-  const all = await db.select().from(sourcesTable);
+  const countRows = await db
+    .select({
+      slug: sourcesTable.collectionSlug,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(sourcesTable)
+    .groupBy(sourcesTable.collectionSlug);
   const counts: Record<string, number> = {};
-  for (const s of all) {
-    if (s.collectionSlug) counts[s.collectionSlug] = (counts[s.collectionSlug] ?? 0) + 1;
+  for (const row of countRows) {
+    if (row.slug) counts[row.slug] = row.count;
   }
   res.json(cols.map((c) => formatCollection(c, counts[c.slug] ?? 0)));
 });
@@ -47,7 +56,7 @@ router.get("/collections/:slug", async (req, res): Promise<void> => {
     sources: sources.map((s) => ({
       id: s.id,
       title: s.title,
-      sourceType: s.sourceType,
+      sourceType: publicSourceType(s.sourceType),
       collectionSlug: s.collectionSlug ?? null,
       collectionName: col.name,
       repository: s.repositoryId
@@ -71,7 +80,8 @@ router.get("/collections/:slug", async (req, res): Promise<void> => {
       availability: s.availability,
       rightsStatement: s.rightsStatement ?? null,
       description: s.description ?? null,
-      excerpt: s.excerpt ?? null,
+      excerpt: visibleExcerpt(s),
+      translationDisclosure: TRANSLATION_DISCLOSURE,
       externalUrl: s.externalUrl ?? null,
       tags: s.tags,
       createdAt: s.createdAt.toISOString(),

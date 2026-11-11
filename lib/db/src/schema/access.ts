@@ -1,0 +1,153 @@
+import { boolean, integer, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { usersTable } from "./users";
+
+/**
+ * Single-use by default. Only the hash is stored.
+ * `activeKey` is 1 while the delegate row is the one live designation, and null after revoke.
+ * A unique index on that column allows many revoked rows and at most one live delegate.
+ */
+export const compDelegatesTable = pgTable(
+  "comp_delegates",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
+    designatedByUserId: integer("designated_by_user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
+    activeKey: integer("active_key"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    revokedByUserId: integer("revoked_by_user_id").references(() => usersTable.id, { onDelete: "set null" }),
+  },
+  (table) => [uniqueIndex("comp_delegates_one_active").on(table.activeKey)],
+);
+
+export type CompDelegate = typeof compDelegatesTable.$inferSelect;
+
+export const compCodesTable = pgTable("comp_codes", {
+  id: serial("id").primaryKey(),
+  codeHash: text("code_hash").notNull().unique(),
+  codeHint: text("code_hint").notNull(),
+  label: text("label"),
+  singleUse: boolean("single_use").notNull().default(true),
+  createdByUserId: integer("created_by_user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  /** First account that redeemed this code. Later accounts cannot take it over. */
+  boundUserId: integer("bound_user_id").references(() => usersTable.id, { onDelete: "set null" }),
+  boundAt: timestamp("bound_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  revokedByUserId: integer("revoked_by_user_id").references(() => usersTable.id, { onDelete: "set null" }),
+});
+
+export type CompCode = typeof compCodesTable.$inferSelect;
+
+export const compRedemptionsTable = pgTable("comp_redemptions", {
+  id: serial("id").primaryKey(),
+  codeId: integer("code_id")
+    .notNull()
+    .references(() => compCodesTable.id, { onDelete: "cascade" }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  redeemedAt: timestamp("redeemed_at", { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  revokedByUserId: integer("revoked_by_user_id").references(() => usersTable.id, { onDelete: "set null" }),
+});
+
+export type CompRedemption = typeof compRedemptionsTable.$inferSelect;
+
+/**
+ * `activeUserId` is the user id while the grant is live and null after revoke.
+ * Unique, so a person can hold only one live comp. Revoked rows do not collide.
+ */
+export const compGrantsTable = pgTable("comp_grants", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  redemptionId: integer("redemption_id")
+    .notNull()
+    .references(() => compRedemptionsTable.id, { onDelete: "cascade" }),
+  activeUserId: integer("active_user_id").unique(),
+  grantedAt: timestamp("granted_at", { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  revokedByUserId: integer("revoked_by_user_id").references(() => usersTable.id, { onDelete: "set null" }),
+});
+
+export type CompGrant = typeof compGrantsTable.$inferSelect;
+
+/**
+ * A different account tried a code that is already bound.
+ * Status is open, reviewed, or dismissed. IP and user agent are for the security investigation.
+ */
+export const compCodeIncidentsTable = pgTable("comp_code_incidents", {
+  id: serial("id").primaryKey(),
+  codeId: integer("code_id")
+    .notNull()
+    .references(() => compCodesTable.id, { onDelete: "cascade" }),
+  attemptingUserId: integer("attempting_user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  ip: text("ip").notNull(),
+  userAgent: text("user_agent").notNull(),
+  status: text("status").notNull().default("open"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  resolvedByUserId: integer("resolved_by_user_id").references(() => usersTable.id, { onDelete: "set null" }),
+});
+
+export type CompCodeIncident = typeof compCodeIncidentsTable.$inferSelect;
+
+/** Per-staff read mark so the unread badge clears for the person who opened the list. */
+export const compCodeIncidentReadsTable = pgTable(
+  "comp_code_incident_reads",
+  {
+    incidentId: integer("incident_id")
+      .notNull()
+      .references(() => compCodeIncidentsTable.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
+    readAt: timestamp("read_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("comp_code_incident_reads_once").on(table.incidentId, table.userId)],
+);
+
+export const serviceTokensTable = pgTable("service_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  createdByUserId: integer("created_by_user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+});
+
+export type ServiceToken = typeof serviceTokensTable.$inferSelect;
+
+/** One row per completed one-time maintenance task. The name is the idempotency marker. */
+export const maintenanceMarkersTable = pgTable("maintenance_markers", {
+  name: text("name").primaryKey(),
+  completedAt: timestamp("completed_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const moderationEventsTable = pgTable("moderation_events", {
+  id: serial("id").primaryKey(),
+  actorUserId: integer("actor_user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  action: text("action").notNull(),
+  targetType: text("target_type").notNull(),
+  targetId: text("target_id").notNull(),
+  reason: text("reason"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type ModerationEvent = typeof moderationEventsTable.$inferSelect;

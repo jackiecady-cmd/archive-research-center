@@ -1,6 +1,9 @@
 import { Router } from "express";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { db, repositoriesTable, sourcesTable } from "@workspace/db";
+import { TRANSLATION_DISCLOSURE } from "@workspace/config";
+import { visibleExcerpt, visibleOriginalText } from "../lib/holding";
+import { publicSourceType } from "../lib/source-type";
 
 const router = Router();
 
@@ -26,7 +29,7 @@ function formatSource(
   return {
     id: source.id,
     title: source.title,
-    sourceType: source.sourceType,
+    sourceType: publicSourceType(source.sourceType),
     collectionSlug: source.collectionSlug ?? null,
     collectionName: null,
     repository: {
@@ -48,8 +51,9 @@ function formatSource(
     availability: source.availability,
     rightsStatement: source.rightsStatement ?? null,
     description: source.description ?? null,
-    excerpt: source.excerpt ?? null,
-    originalLanguageText: source.originalLanguageText ?? null,
+    excerpt: visibleExcerpt(source),
+    translationDisclosure: TRANSLATION_DISCLOSURE,
+    originalLanguageText: visibleOriginalText(source),
     externalUrl: source.externalUrl ?? null,
     tags: source.tags,
     yearApprox: source.yearApprox ?? null,
@@ -62,12 +66,16 @@ router.get("/repositories", async (_req, res): Promise<void> => {
     .select()
     .from(repositoriesTable)
     .orderBy(desc(repositoriesTable.createdAt));
-  const allSources = await db.select().from(sourcesTable);
+  const countRows = await db
+    .select({
+      repositoryId: sourcesTable.repositoryId,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(sourcesTable)
+    .groupBy(sourcesTable.repositoryId);
   const counts = new Map<number, number>();
-  for (const source of allSources) {
-    if (source.repositoryId) {
-      counts.set(source.repositoryId, (counts.get(source.repositoryId) ?? 0) + 1);
-    }
+  for (const row of countRows) {
+    if (row.repositoryId) counts.set(row.repositoryId, row.count);
   }
   res.json(
     repositories.map((repository) =>

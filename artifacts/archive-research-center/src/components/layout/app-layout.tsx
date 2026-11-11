@@ -1,10 +1,14 @@
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import {
   Book, Library, Users, UserCircle, Search, FileText,
-  FlaskConical, Languages, GitBranch, Menu, X,
+  FlaskConical, Languages, Lock, Menu, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
+import { apiSend } from "@/lib/api";
+import { SiteFooter } from "@/components/site-footer";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 const NAV_ITEMS = [
@@ -16,7 +20,7 @@ const NAV_ITEMS = [
   { label: "Research Concierge", href: "/concierge",  icon: UserCircle, section: "community" },
   { label: "Research Commons",   href: "/commons",    icon: Users,      section: "community" },
   { label: "Translation Center", href: "/translation",icon: Languages,  section: "community" },
-  { label: "Genealogy",          href: "/genealogy",  icon: GitBranch,  section: "community" },
+  { label: "Private Rooms",      href: "/rooms",     icon: Lock,       section: "community" },
   { label: "Account & Membership", href: "/account",  icon: UserCircle, section: "account" },
 ];
 
@@ -40,6 +44,18 @@ function NavContents({
   location: string;
   onNavigate?: () => void;
 }) {
+  const { user, loading } = useAuth();
+  const unread = useQuery({
+    queryKey: ["comp-incidents-unread"],
+    enabled: user?.compStaff === true,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const result = await apiSend("/api/comp-code-incidents/unread");
+      if (!result.ok) return { count: 0 };
+      return result.json as { count: number };
+    },
+  });
+  const unreadCount = unread.data?.count ?? 0;
   return (
     <nav className="flex-1 overflow-y-auto px-4 pb-4 space-y-8">
       {SECTIONS.map(({ key, label }) => {
@@ -65,12 +81,27 @@ function NavContents({
                 )}
               >
                 <item.icon className="h-4 w-4 flex-shrink-0" />
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {item.href === "/account" && unreadCount > 0 ? (
+                  <span
+                    className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground"
+                    aria-label={`${unreadCount} unread comp code alerts`}
+                  >
+                    {unreadCount}
+                  </span>
+                ) : null}
               </Link>
             ))}
           </div>
         );
       })}
+      <div className="px-2 pt-2 text-xs text-sidebar-foreground/70">
+        {loading ? "Checking session…" : user ? (
+          <span>Signed in as {user.displayName}</span>
+        ) : (
+          <Link href="/sign-in" onClick={onNavigate} className="underline">Sign in</Link>
+        )}
+      </div>
     </nav>
   );
 }
@@ -143,6 +174,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="md:hidden h-[52px] flex-shrink-0" />
         <div className="flex-1 overflow-y-auto">
           {children}
+          <SiteFooter />
         </div>
       </main>
     </div>

@@ -1,0 +1,13 @@
+{
+  "name": "@workspace/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./legal": "./src/legal.ts"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:"
+  }
+}

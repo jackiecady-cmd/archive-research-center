@@ -7,7 +7,11 @@ info:
 servers:
   - url: /api
     description: Base API path
+security:
+  - sessionCookie: []
 tags:
+  - name: auth
+    description: Email and password accounts
   - name: health
     description: Health operations
   - name: sources
@@ -37,6 +41,7 @@ paths:
   /healthz:
     get:
       operationId: healthCheck
+      security: []
       tags: [health]
       summary: Health check
       responses:
@@ -47,11 +52,82 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 
+  /auth/register:
+    post:
+      operationId: register
+      security: []
+      tags: [auth]
+      summary: Create an email and password account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Created account and session cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "409":
+          description: Email already registered
+
+  /auth/login:
+    post:
+      operationId: login
+      security: []
+      tags: [auth]
+      summary: Sign in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Signed-in account and session cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      operationId: logout
+      security: []
+      tags: [auth]
+      summary: End the current session
+      responses:
+        "204":
+          description: Session cleared
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      security: []
+      tags: [auth]
+      summary: Return the signed-in account
+      responses:
+        "200":
+          description: Current account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+        "401":
+          description: Not signed in
+
   # ─── Sources ─────────────────────────────────────────────────────────────────
 
   /sources:
     get:
       operationId: listSources
+      security: []
       tags: [sources]
       summary: List and search archive sources
       parameters:
@@ -83,10 +159,10 @@ paths:
           schema: { type: string }
         - name: page
           in: query
-          schema: { type: number }
+          schema: { type: integer, minimum: 1 }
         - name: limit
           in: query
-          schema: { type: number }
+          schema: { type: integer, minimum: 1, maximum: 50 }
         - name: yearFrom
           in: query
           schema: { type: number }
@@ -121,6 +197,7 @@ paths:
   /sources/{id}:
     get:
       operationId: getSource
+      security: []
       tags: [sources]
       summary: Get a single source record
       parameters:
@@ -165,6 +242,7 @@ paths:
   /sources/stats:
     get:
       operationId: getSourceStats
+      security: []
       tags: [sources]
       summary: Archive statistics overview
       responses:
@@ -180,6 +258,7 @@ paths:
   /collections:
     get:
       operationId: listCollections
+      security: []
       tags: [collections]
       summary: List all curated collections
       responses:
@@ -195,6 +274,7 @@ paths:
   /collections/{slug}:
     get:
       operationId: getCollection
+      security: []
       tags: [collections]
       summary: Get a collection by slug with its sources
       parameters:
@@ -217,6 +297,7 @@ paths:
   /repositories:
     get:
       operationId: listRepositories
+      security: []
       tags: [repositories]
       summary: List holding repositories
       responses:
@@ -232,6 +313,7 @@ paths:
   /repositories/{slug}:
     get:
       operationId: getRepository
+      security: []
       tags: [repositories]
       summary: Get a holding repository with its linked sources
       parameters:
@@ -647,9 +729,25 @@ paths:
 
   # ─── Forum ────────────────────────────────────────────────────────────────────
 
+  /forum/categories:
+    get:
+      operationId: listForumCategories
+      security: []
+      tags: [forum]
+      summary: List public discussion categories
+      responses:
+        "200":
+          description: Categories any signed-in member may post in
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string }
+
   /forum/threads:
     get:
       operationId: listForumThreads
+      security: []
       tags: [forum]
       summary: List forum threads
       parameters:
@@ -689,6 +787,7 @@ paths:
   /forum/threads/{id}:
     get:
       operationId: getForumThread
+      security: []
       tags: [forum]
       summary: Get a forum thread with its replies
       parameters:
@@ -731,6 +830,7 @@ paths:
   /forum/recent:
     get:
       operationId: getRecentForumActivity
+      security: []
       tags: [forum]
       summary: Recent forum activity feed
       responses:
@@ -746,6 +846,7 @@ paths:
   /membership/plans:
     get:
       operationId: listMembershipPlans
+      security: []
       tags: [membership]
       summary: List available membership plans
       responses:
@@ -845,7 +946,7 @@ paths:
     get:
       operationId: getTranslation
       tags: [translations]
-      summary: Get or auto-create a translation workspace for a source
+      summary: Read the signed-in researcher's translation workspace for a source
       parameters:
         - name: sourceId
           in: query
@@ -860,19 +961,44 @@ paths:
                 $ref: "#/components/schemas/Translation"
         "400":
           description: Missing or invalid sourceId
+        "404":
+          description: No workspace for this account and source
+    post:
+      operationId: createTranslation
+      tags: [translations]
+      summary: Create or return the signed-in researcher's workspace for a source
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTranslationInput"
+      responses:
+        "200":
+          description: Existing workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Translation"
+        "201":
+          description: Created workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Translation"
 
   /translations/workspaces:
     get:
       operationId: listTranslationWorkspaces
       tags: [translations]
-      summary: List saved translation workspaces with source info, optionally filtered by search query
+      summary: List the signed-in researcher's translation workspaces
       parameters:
         - name: q
           in: query
           schema: { type: string }
         - name: limit
           in: query
-          schema: { type: number }
+          schema: { type: integer, minimum: 1, maximum: 50 }
       responses:
         "200":
           description: List of workspace summaries
@@ -910,7 +1036,47 @@ paths:
           description: Not found
 
 components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: arc_session
+      description: Server-side session id. The cookie is httpOnly, SameSite=Lax, and Secure in production.
   schemas:
+    AuthUser:
+      type: object
+      required: [id, email, displayName, role, entitlement, compStaff]
+      properties:
+        id: { type: integer }
+        email: { type: string, format: email }
+        displayName: { type: string }
+        role:
+          type: string
+          enum: [user, editor, moderator, admin]
+        entitlement:
+          type: string
+          enum: [free, paid, comp]
+        compStaff:
+          type: boolean
+          description: True for an administrator or the active comp delegate. They can issue codes and review comp-code incidents.
+    RegisterInput:
+      type: object
+      required: [email, password, displayName]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 10, maxLength: 200 }
+        displayName: { type: string, minLength: 1, maxLength: 80 }
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 1, maxLength: 200 }
+    CreateTranslationInput:
+      type: object
+      required: [sourceId]
+      properties:
+        sourceId: { type: integer, minimum: 1 }
     HealthStatus:
       type: object
       properties:
@@ -922,13 +1088,13 @@ components:
 
     Source:
       type: object
-      required: [id, title, sourceType, collectionSlug, provenance, confidence, availability]
+      required: [id, title, sourceType, collectionSlug, provenance, confidence, availability, translationDisclosure]
       properties:
         id: { type: number }
         title: { type: string }
         sourceType:
           type: string
-          enum: [primary, translation, scholarship, interpretation, ai_assistance, conclusion]
+          enum: [primary, translation, scholarship, interpretation, conclusion]
         collectionSlug: { type: ["string", "null"] }
         collectionName: { type: ["string", "null"] }
         repository:
@@ -954,9 +1120,12 @@ components:
         rightsStatement: { type: ["string", "null"] }
         description: { type: ["string", "null"] }
         excerpt: { type: ["string", "null"] }
+        translationDisclosure:
+          type: string
+          description: Public translation disclosure. The wording is TRANSLATION_DISCLOSURE in @workspace/config, approved in legal review on Nov 11, 2026. Do not put a model or provider name in this field.
         originalLanguageText: { type: ["string", "null"] }
         externalUrl: { type: ["string", "null"] }
-        tags: { type: array, items: { type: string } }
+        tags: { type: array, maxItems: 50, items: { type: string } }
         yearApprox: { type: ["number", "null"] }
         createdAt: { type: string }
 
@@ -967,7 +1136,7 @@ components:
         title: { type: string }
         sourceType:
           type: string
-          enum: [primary, translation, scholarship, interpretation, ai_assistance, conclusion]
+          enum: [primary, translation, scholarship, interpretation, conclusion]
         collectionSlug: { type: string }
         repositoryId: { type: number }
         repositoryAccessStatus:
@@ -991,7 +1160,7 @@ components:
         excerpt: { type: string }
         originalLanguageText: { type: string }
         externalUrl: { type: string }
-        tags: { type: array, items: { type: string } }
+        tags: { type: array, maxItems: 50, items: { type: string } }
         yearApprox: { type: number }
 
     UpdateSourceInput:
@@ -1291,44 +1460,49 @@ components:
 
     ForumThread:
       type: object
-      required: [id, title, category, authorName, replyCount, createdAt]
+      required: [id, userId, title, category, authorName, replyCount, locked, hidden, createdAt]
       properties:
         id: { type: number }
+        userId: { type: number }
         title: { type: string }
         content: { type: string }
         category: { type: string }
         authorName: { type: string }
         replyCount: { type: number }
-        tags: { type: array, items: { type: string } }
+        tags: { type: array, maxItems: 50, items: { type: string } }
+        locked: { type: boolean }
+        hidden: { type: boolean }
         createdAt: { type: string }
         lastActivityAt: { type: string }
 
     ForumThreadInput:
       type: object
-      required: [title, content, category, authorName]
+      required: [title, content, category]
       properties:
         title: { type: string }
         content: { type: string }
-        category: { type: string }
-        authorName: { type: string }
-        tags: { type: array, items: { type: string } }
+        category:
+          type: string
+          enum: [Sources, Methodology, Translation, Interpretation, Chronology]
+        tags: { type: array, maxItems: 50, items: { type: string } }
 
     ForumReply:
       type: object
-      required: [id, threadId, content, authorName, createdAt]
+      required: [id, userId, threadId, content, authorName, hidden, createdAt]
       properties:
         id: { type: number }
+        userId: { type: number }
         threadId: { type: number }
         content: { type: string }
         authorName: { type: string }
+        hidden: { type: boolean }
         createdAt: { type: string }
 
     ForumReplyInput:
       type: object
-      required: [content, authorName]
+      required: [content]
       properties:
         content: { type: string }
-        authorName: { type: string }
 
     ForumThreadDetail:
       type: object
@@ -1358,14 +1532,10 @@ components:
 
     MembershipPlan:
       type: object
-      required: [id, name, billingPeriod, priceUsd, features]
+      required: [id, name, features]
       properties:
         id: { type: string }
         name: { type: string }
-        billingPeriod:
-          type: string
-          enum: [monthly, annual]
-        priceUsd: { type: number }
         features: { type: array, items: { type: string } }
         recommended: { type: boolean }
 
@@ -1431,7 +1601,7 @@ components:
 
     Translation:
       type: object
-      required: [id, sourceId, createdAt, updatedAt]
+      required: [id, sourceId, createdAt, updatedAt, translationDisclosure]
       properties:
         id: { type: number }
         sourceId: { type: number }
@@ -1444,7 +1614,9 @@ components:
         publishedTranslationAttribution: { type: ["string", "null"] }
         commentary: { type: ["string", "null"] }
         userInterpretation: { type: ["string", "null"] }
-        aiAssistance: { type: ["string", "null"] }
+        translationDisclosure:
+          type: string
+          description: Public translation disclosure. Same wording as Source.translationDisclosure.
         createdAt: { type: string }
         updatedAt: { type: string }
 
@@ -1460,11 +1632,10 @@ components:
         publishedTranslationAttribution: { type: string }
         commentary: { type: string }
         userInterpretation: { type: string }
-        aiAssistance: { type: string }
 
     TranslationWorkspaceSummary:
       type: object
-      required: [id, sourceId, sourceTitle, filledLayerCount, updatedAt]
+      required: [id, sourceId, sourceTitle, filledLayerCount, updatedAt, translationDisclosure]
       properties:
         id: { type: number }
         sourceId: { type: number }
@@ -1475,4 +1646,7 @@ components:
         sourceCollectionSlug: { type: ["string", "null"] }
         filledLayerCount: { type: number }
         preview: { type: ["string", "null"] }
+        translationDisclosure:
+          type: string
+          description: Public translation disclosure. Same wording as Source.translationDisclosure.
         updatedAt: { type: string }

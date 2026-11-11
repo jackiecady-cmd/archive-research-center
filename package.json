@@ -15,7 +15,9 @@
     "db:seed": "node scripts/run.mjs --filter @workspace/db run seed",
     "db:seed:research": "node scripts/run.mjs --filter @workspace/db run seed:research",
     "db:seed:forum": "node scripts/run.mjs --filter @workspace/db run seed:forum",
-    "api:codegen": "pnpm --filter @workspace/api-spec run codegen"
+    "api:codegen": "pnpm --filter @workspace/api-spec run codegen",
+    "db:set-role": "node scripts/run.mjs --filter @workspace/db run set-role",
+    "test": "pnpm --filter @workspace/api-server run test"
   },
   "devDependencies": {
     "typescript": "~5.9.3"

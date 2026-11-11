@@ -22,9 +22,13 @@ import { CommonsPage } from "@/pages/commons";
 import { ThreadDetailPage } from "@/pages/thread-detail";
 import { TranslationPage } from "@/pages/translation";
 import { TranslationWorkspacePage } from "@/pages/translation-workspace";
-import { GenealogyPage } from "@/pages/genealogy";
+import { RoomsPage } from "@/pages/rooms";
 import { AccountPage } from "@/pages/account";
+import { LegalPage } from "@/pages/legal";
 import { MembershipPage } from "@/pages/membership";
+import { SignInPage } from "@/pages/sign-in";
+import { SignUpPage } from "@/pages/sign-up";
+import { AuthProvider, RequireAuth } from "@/lib/auth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,18 +49,25 @@ function Router() {
           <Route path="/sources/:id" component={SourceDetailPage} />
           <Route path="/collections" component={CollectionsPage} />
           <Route path="/collections/:slug" component={CollectionDetailPage} />
-          <Route path="/projects" component={ProjectsPage} />
-          <Route path="/projects/:id" component={ProjectDetailPage} />
-          <Route path="/claim-cards" component={ClaimCardsPage} />
-          <Route path="/claim-cards/:id" component={ClaimCardDetailPage} />
-          <Route path="/concierge" component={ConciergePage} />
+          <Route path="/projects">{() => <RequireAuth><ProjectsPage /></RequireAuth>}</Route>
+          <Route path="/projects/:id">{() => <RequireAuth><ProjectDetailPage /></RequireAuth>}</Route>
+          <Route path="/claim-cards">{() => <RequireAuth><ClaimCardsPage /></RequireAuth>}</Route>
+          <Route path="/claim-cards/:id">{() => <RequireAuth><ClaimCardDetailPage /></RequireAuth>}</Route>
+          <Route path="/concierge">{() => (
+            <RequireAuth message="The research concierge is available once you sign in. Your pathway stays with your account.">
+              <ConciergePage />
+            </RequireAuth>
+          )}</Route>
           <Route path="/commons" component={CommonsPage} />
           <Route path="/commons/:id" component={ThreadDetailPage} />
-          <Route path="/translation" component={TranslationPage} />
-          <Route path="/translation/:sourceId" component={TranslationWorkspacePage} />
-          <Route path="/genealogy" component={GenealogyPage} />
+          <Route path="/rooms">{() => <RequireAuth><RoomsPage /></RequireAuth>}</Route>
+          <Route path="/translation">{() => <RequireAuth><TranslationPage /></RequireAuth>}</Route>
+          <Route path="/translation/:sourceId">{() => <RequireAuth><TranslationWorkspacePage /></RequireAuth>}</Route>
+          <Route path="/sign-in" component={SignInPage} />
+          <Route path="/sign-up" component={SignUpPage} />
           <Route path="/account" component={AccountPage} />
-          <Route path="/membership" component={MembershipPage} />
+          <Route path="/membership">{() => <RequireAuth><MembershipPage /></RequireAuth>}</Route>
+          <Route path="/legal/:slug" component={LegalPage} />
           <Route component={NotFound} />
         </Switch>
       </RoutedErrorBoundary>
@@ -72,12 +83,14 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthProvider>
       <ConciergeProfileProvider>
         <TooltipProvider>
           <Router />
           <Toaster />
         </TooltipProvider>
       </ConciergeProfileProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

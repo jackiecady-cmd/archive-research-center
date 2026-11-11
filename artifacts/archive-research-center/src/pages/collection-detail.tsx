@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Clock, FileText, Search, X } from "lucide-react";
 import { SourceTypeBadge, ConfidenceBadge, AvailabilityBadge } from "@/components/source-badges";
+import { TranslationDisclosure } from "@/components/translation-disclosure";
+import { isCitationOnly } from "@workspace/config/legal";
 
 // ── Inline debounce ──────────────────────────────────────────────────────────
 function useDebounce<T>(value: T, delay: number): T {
@@ -78,14 +80,14 @@ export function CollectionDetailPage() {
       ...(debouncedQ ? { q: debouncedQ } : {}),
       ...(sourceType ? { sourceType } : {}),
       ...(confidence ? { confidence } : {}),
-      limit: 100,
+      limit: 50,
     },
     { query: { enabled: !!slug, queryKey: getListSourcesQueryKey({
       collection: slug,
       ...(debouncedQ ? { q: debouncedQ } : {}),
       ...(sourceType ? { sourceType } : {}),
       ...(confidence ? { confidence } : {}),
-      limit: 100,
+      limit: 50,
     }) } }
   );
 
@@ -268,9 +270,24 @@ export function CollectionDetailPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pb-4">
-                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                      {source.excerpt || source.description || "No excerpt available."}
-                    </p>
+                    {isCitationOnly(source) ? (
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Citation and link only.
+                        {source.externalUrl ? (
+                          <>
+                            {" "}
+                            <a href={source.externalUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">Open the holding</a>
+                          </>
+                        ) : null}
+                      </p>
+                    ) : (
+                      <>
+                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                          {source.excerpt || source.description || "No excerpt available."}
+                        </p>
+                        {source.excerpt ? <div className="mt-3"><TranslationDisclosure /></div> : null}
+                      </>
+                    )}
                   </CardContent>
                   <CardFooter className="bg-secondary/20 border-t border-border/50 py-3 text-xs text-muted-foreground flex flex-wrap gap-4 items-center">
                     {source.author && (

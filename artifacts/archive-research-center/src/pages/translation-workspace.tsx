@@ -9,8 +9,7 @@
  *   5. Readable Translation — natural-language rendering
  *   6. Published Translation — existing scholarly reference (with attribution)
  *   7. Commentary           — contextual and historical notes
- *   8. AI Assistance        — clearly marked, never source evidence
- *   9. User Interpretation  — researcher's own synthesis (labelled accordingly)
+ *   8. User Interpretation  — researcher's own synthesis (labelled accordingly)
  */
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useLocation } from "wouter";
@@ -21,13 +20,19 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  ArrowLeft, Save, Languages, AlertTriangle, BookOpen, Bot,
+  ArrowLeft, Save, Languages, BookOpen,
   User, Quote, Lightbulb, ChevronDown, ChevronUp, Info,
   CheckCircle2, Clock, Download, Copy, Printer,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
+import { buildPrintDocument } from "@/lib/print-html";
+import { TRANSLATION_DISCLOSURE } from "@workspace/config";
+import { isCitationOnly, hidesSourceTextFromSearch } from "@workspace/config/legal";
+import { prefillOriginalText, withoutPrefilledSourceText } from "@/lib/workspace-prefill";
 import { ConfidenceBadge, SourceTypeBadge } from "@/components/source-badges";
+import { TranslationDisclosure } from "@/components/translation-disclosure";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +54,6 @@ type TranslationLayer = {
   publishedTranslationAttribution: string;
   commentary: string;
   userInterpretation: string;
-  aiAssistance: string;
 };
 
 const EMPTY_LAYERS: TranslationLayer = {
@@ -62,15 +66,23 @@ const EMPTY_LAYERS: TranslationLayer = {
   publishedTranslationAttribution: "",
   commentary: "",
   userInterpretation: "",
-  aiAssistance: "",
 };
+
+function pickLayers(value: Partial<TranslationLayer>): TranslationLayer {
+  const next = { ...EMPTY_LAYERS };
+  (Object.keys(EMPTY_LAYERS) as (keyof TranslationLayer)[]).forEach((key) => {
+    const field = value[key];
+    if (typeof field === "string") next[key] = field;
+  });
+  return next;
+}
 
 type LayerMeta = {
   key: keyof TranslationLayer;
   label: string;
   icon: React.ReactNode;
   description: string;
-  epistemic: "source" | "linguistic" | "translation" | "interpretive" | "ai";
+  epistemic: "source" | "linguistic" | "translation" | "interpretive";
   placeholder: string;
   isSmall?: boolean; // single-line input
 };
@@ -149,14 +161,6 @@ const LAYERS: LayerMeta[] = [
     epistemic: "interpretive",
     placeholder: "State your interpretation clearly and note what evidence supports it…",
   },
-  {
-    key: "aiAssistance",
-    label: "AI Assistance",
-    icon: <Bot className="h-4 w-4" />,
-    description: "AI-generated drafts or suggestions. Always verify against the original. Never cite this as source evidence.",
-    epistemic: "ai",
-    placeholder: "Paste AI-generated suggestions here for your own reference…",
-  },
 ];
 
 const EPISTEMIC_COLORS: Record<LayerMeta["epistemic"], string> = {
@@ -164,17 +168,15 @@ const EPISTEMIC_COLORS: Record<LayerMeta["epistemic"], string> = {
   linguistic:  "border-l-teal-600 bg-teal-50/40 dark:bg-teal-950/20",
   translation: "border-l-emerald-600 bg-emerald-50/40 dark:bg-emerald-950/20",
   interpretive:"border-l-amber-600 bg-amber-50/40 dark:bg-amber-950/20",
-  ai:          "border-l-rose-600 bg-rose-50/40 dark:bg-rose-950/20",
 };
 const EPISTEMIC_BADGE: Record<LayerMeta["epistemic"], { label: string; class: string }> = {
   source:      { label: "Source", class: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300" },
   linguistic:  { label: "Linguistic", class: "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-300" },
   translation: { label: "Translation", class: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300" },
   interpretive:{ label: "Interpretive", class: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" },
-  ai:          { label: "AI — Not Evidence", class: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300" },
 };
 
-const STORAGE_KEY = (id: number) => `arc_translation_${id}`;
+const storageKeyFor = (userId: number, sourceId: number) => `arc_translation_${userId}_${sourceId}`;
 
 // ── Debounce helper ────────────────────────────────────────────────────────
 
@@ -194,6 +196,7 @@ export function TranslationWorkspacePage() {
   const sourceId = parseInt(params.sourceId || "0", 10);
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Source record
   const { data: source, isLoading: sourceLoading } = useGetSource(sourceId, {
@@ -211,63 +214,96 @@ export function TranslationWorkspacePage() {
   const debouncedLayers = useDebounce(layers, 1200);
   const initializedRef = useRef(false);
 
-  // Load workspace from API on mount
+  // Load the caller's workspace. Create it only when none exists.
   useEffect(() => {
-    if (!sourceId) return;
-    // Try localStorage first (instant)
+    if (!sourceId || !user) return;
+    const storageKey = storageKeyFor(user.id, sourceId);
     try {
-      const cached = localStorage.getItem(STORAGE_KEY(sourceId));
+      const cached = localStorage.getItem(storageKey);
       if (cached) {
         const c = JSON.parse(cached);
-        if (c.layers) setLayers(c.layers);
+        if (c.layers) setLayers({ ...EMPTY_LAYERS, ...pickLayers(c.layers) });
         if (c.translationId) setTranslationId(c.translationId);
       }
     } catch {}
 
-    // Then fetch/create from API
-    fetch(`/api/translations?sourceId=${sourceId}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setTranslationId(data.id);
-        const serverLayers: TranslationLayer = {
-          originalText: data.originalText ?? "",
-          transliteration: data.transliteration ?? "",
-          morphologyNotes: data.morphologyNotes ?? "",
-          literalTranslation: data.literalTranslation ?? "",
-          readableTranslation: data.readableTranslation ?? "",
-          publishedTranslation: data.publishedTranslation ?? "",
-          publishedTranslationAttribution: data.publishedTranslationAttribution ?? "",
-          commentary: data.commentary ?? "",
-          userInterpretation: data.userInterpretation ?? "",
-          aiAssistance: data.aiAssistance ?? "",
-        };
-        setLayers((prev) => {
-          // If server has content, prefer it; otherwise keep local draft
-          const hasServerContent = Object.values(serverLayers).some((v) => v.trim());
-          return hasServerContent ? serverLayers : prev;
+    const applyWorkspace = (data: Record<string, string | number | null>) => {
+      setTranslationId(Number(data.id));
+      const serverLayers: TranslationLayer = {
+        originalText: String(data.originalText ?? ""),
+        transliteration: String(data.transliteration ?? ""),
+        morphologyNotes: String(data.morphologyNotes ?? ""),
+        literalTranslation: String(data.literalTranslation ?? ""),
+        readableTranslation: String(data.readableTranslation ?? ""),
+        publishedTranslation: String(data.publishedTranslation ?? ""),
+        publishedTranslationAttribution: String(data.publishedTranslationAttribution ?? ""),
+        commentary: String(data.commentary ?? ""),
+        userInterpretation: String(data.userInterpretation ?? ""),
+      };
+      setLayers((prev) => {
+        const hasServerContent = Object.values(serverLayers).some((v) => v.trim());
+        return hasServerContent ? serverLayers : prev;
+      });
+      setLoadingWorkspace(false);
+      initializedRef.current = true;
+    };
+
+    fetch(`/api/translations?sourceId=${sourceId}`, { credentials: "include" })
+      .then(async (response) => {
+        if (response.ok) return response.json();
+        if (response.status !== 404) throw new Error("Could not load workspace");
+        const created = await fetch("/api/translations", {
+          method: "POST",
+          credentials: "include",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ sourceId }),
         });
-        setLoadingWorkspace(false);
-        initializedRef.current = true;
+        if (!created.ok) throw new Error("Could not create workspace");
+        return created.json();
       })
+      .then(applyWorkspace)
       .catch(() => {
         setLoadingWorkspace(false);
         initializedRef.current = true;
       });
-  }, [sourceId]);
+  }, [sourceId, user]);
 
-  // Pre-fill Original Text — prefer dedicated original-script field, fall back to excerpt
+  // Pre-fill Original Text only for records whose source text is public.
+  // Citation-only, CDLI, and CC BY-NC records keep the researcher's own layers and do not copy hidden text.
   useEffect(() => {
     if (!source || !initializedRef.current) return;
+    const hidden = isCitationOnly(source) || hidesSourceTextFromSearch(source);
+    if (!hidden) {
+      setLayers((prev) => ({ ...prev, originalText: prefillOriginalText(source, prev.originalText) }));
+      return;
+    }
+    let cancelled = false;
     setLayers((prev) => {
-      if (prev.originalText.trim()) return prev;
-      const prefill =
-        source.originalLanguageText?.trim() ||
-        source.excerpt?.trim() ||
-        source.description?.trim() ||
-        "";
-      return { ...prev, originalText: prefill };
+      const text = prev.originalText.trim();
+      if (!text) return prev;
+      void fetch("/api/translations/prefill-check", {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ sourceId, originalText: text }),
+      })
+        .then(async (response) => (response.ok ? response.json() : null))
+        .then((body: { clear?: boolean } | null) => {
+          if (cancelled || !body?.clear || !user) return;
+          setLayers((current) => (
+            current.originalText.trim() === text ? { ...current, originalText: "" } : current
+          ));
+          const storageKey = storageKeyFor(user.id, sourceId);
+          const cached = localStorage.getItem(storageKey);
+          if (!cached) return;
+          const parsed = JSON.parse(cached) as { layers?: { originalText?: string } };
+          localStorage.setItem(storageKey, JSON.stringify(withoutPrefilledSourceText(parsed, [text])));
+        })
+        .catch(() => undefined);
+      return prev;
     });
-  }, [source, loadingWorkspace]);
+    return () => { cancelled = true; };
+  }, [source, loadingWorkspace, sourceId, user]);
 
   // Auto-save to API + localStorage whenever debounced layers change
   useEffect(() => {
@@ -277,6 +313,7 @@ export function TranslationWorkspacePage() {
     setSaving(true);
     fetch(`/api/translations/${translationId}`, {
       method: "PATCH",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(debouncedLayers),
     })
@@ -285,11 +322,11 @@ export function TranslationWorkspacePage() {
         setLastSaved(new Date());
         setSaving(false);
         try {
-          localStorage.setItem(STORAGE_KEY(sourceId), JSON.stringify({ layers: debouncedLayers, translationId }));
+          if (user) localStorage.setItem(storageKeyFor(user.id, sourceId), JSON.stringify({ layers: debouncedLayers, translationId }));
         } catch {}
       })
       .catch(() => setSaving(false));
-  }, [debouncedLayers, translationId, sourceId]);
+  }, [debouncedLayers, translationId, sourceId, user]);
 
   const updateLayer = useCallback((key: keyof TranslationLayer, value: string) => {
     setLayers((prev) => ({ ...prev, [key]: value }));
@@ -314,7 +351,11 @@ export function TranslationWorkspacePage() {
     if (source?.language) lines.push(`**Language:** ${source.language}`);
     if (source?.confidence) lines.push(`**Confidence:** ${source.confidence}`);
     if (source?.provenance) { lines.push(""); lines.push(`**Provenance:** ${source.provenance}`); }
-    lines.push(""); lines.push("---"); lines.push("");
+    lines.push("");
+    lines.push(TRANSLATION_DISCLOSURE);
+    lines.push("");
+    lines.push("---");
+    lines.push("");
 
     type LayerSpec = { key: keyof TranslationLayer; heading: string; disclaimer?: string };
     const specs: LayerSpec[] = [
@@ -327,8 +368,6 @@ export function TranslationWorkspacePage() {
       { key: "commentary",         heading: "## Commentary _(Interpretive layer)_" },
       { key: "userInterpretation", heading: "## Researcher Interpretation _(Interpretive layer)_",
         disclaimer: "> **Researcher interpretation** — labelled as researcher analysis, not primary evidence." },
-      { key: "aiAssistance",       heading: "## AI Assistance",
-        disclaimer: "> ⚠️ **AI-generated — not source evidence.** Verify against primary sources before citing." },
     ];
 
     let any = false;
@@ -351,57 +390,70 @@ export function TranslationWorkspacePage() {
     return lines.join("\n");
   };
 
-  const handleDownloadMarkdown = () => {
-    const md = buildMarkdown();
-    const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${(source?.title ?? "translation").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({ title: "Downloaded", description: "Markdown file saved." });
+  const citationOnly = isCitationOnly(source ?? {});
+
+  const documentForExport = async (): Promise<string> => {
+    const response = await fetch(`/api/sources/${sourceId}/export`, { credentials: "include" });
+    if (!response.ok) throw new Error("Could not prepare the export");
+    const payload = await response.json() as {
+      citationOnly: boolean;
+      title: string;
+      author: string | null;
+      dateLabel: string | null;
+      provenance: string | null;
+      rightsStatement: string | null;
+      externalUrl: string | null;
+    };
+    if (payload.citationOnly || citationOnly) {
+      const lines = [`# ${payload.title}`, ""];
+      if (payload.author) lines.push(`**Author:** ${payload.author}`);
+      if (payload.dateLabel) lines.push(`**Date:** ${payload.dateLabel}`);
+      if (payload.provenance) { lines.push(""); lines.push(`**Provenance:** ${payload.provenance}`); }
+      if (payload.rightsStatement) { lines.push(""); lines.push(payload.rightsStatement); }
+      if (payload.externalUrl) { lines.push(""); lines.push(payload.externalUrl); }
+      lines.push("");
+      lines.push("This record is citation and link only. The full text is not exported.");
+      return lines.join("\n");
+    }
+    return buildMarkdown();
+  };
+
+  const handleDownloadMarkdown = async () => {
+    try {
+      const md = await documentForExport();
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(source?.title ?? "translation").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast({ title: citationOnly ? "Citation downloaded" : "Downloaded", description: citationOnly ? "Full text is not included." : "Markdown file saved." });
+    } catch {
+      toast({ title: "Export failed", description: "The export could not be prepared.", variant: "destructive" });
+    }
   };
 
   const handleCopyMarkdown = async () => {
     try {
-      await navigator.clipboard.writeText(buildMarkdown());
-      toast({ title: "Copied", description: "Markdown copied to clipboard." });
+      await navigator.clipboard.writeText(await documentForExport());
+      toast({ title: "Copied", description: citationOnly ? "Citation copied. Full text is not included." : "Markdown copied to clipboard." });
     } catch {
       toast({ title: "Copy failed", description: "Your browser blocked clipboard access.", variant: "destructive" });
     }
   };
 
-  const handlePrintPdf = () => {
-    const md = buildMarkdown();
-    // Convert minimal markdown → HTML for the print window
-    const htmlLines = md
-      .split("\n")
-      .map((l) => {
-        if (l.startsWith("## ")) return `<h2>${l.slice(3)}</h2>`;
-        if (l.startsWith("# ")) return `<h1>${l.slice(2)}</h1>`;
-        if (l.startsWith("> ")) return `<blockquote>${l.slice(2)}</blockquote>`;
-        if (l.startsWith("---")) return `<hr/>`;
-        if (l.trim() === "") return `<br/>`;
-        // Bold **text**
-        const bolded = l.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\*(.*?)\*/g, "<em>$1</em>");
-        return `<p>${bolded}</p>`;
-      })
-      .join("");
-    const win = window.open("", "_blank");
-    if (!win) { toast({ title: "Popup blocked", description: "Allow popups to use print-to-PDF.", variant: "destructive" }); return; }
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${source?.title ?? "Translation"}</title>
-      <style>
-        body { font-family: Georgia, serif; max-width: 740px; margin: 40px auto; color: #111; line-height: 1.7; }
-        h1 { font-size: 1.8rem; border-bottom: 2px solid #ccc; padding-bottom: .4rem; }
-        h2 { font-size: 1.1rem; color: #444; margin-top: 1.6rem; }
-        blockquote { border-left: 4px solid #e05; padding: .3rem .8rem; background: #fff5f5; color: #700; margin: .5rem 0; }
-        hr { border: none; border-top: 1px solid #ddd; margin: 1.5rem 0; }
-        p { margin: .25rem 0; } br { display: none; }
-        @media print { body { margin: 1cm; } }
-      </style></head><body>${htmlLines}</body></html>`);
-    win.document.close();
-    setTimeout(() => win.print(), 300);
+  const handlePrintPdf = async () => {
+    try {
+      const md = await documentForExport();
+      const win = window.open("", "_blank");
+      if (!win) { toast({ title: "Popup blocked", description: "Allow popups to use print-to-PDF.", variant: "destructive" }); return; }
+      win.document.write(buildPrintDocument(source?.title ?? "Translation", md));
+      win.document.close();
+      setTimeout(() => win.print(), 300);
+    } catch {
+      toast({ title: "Print failed", description: "The export could not be prepared.", variant: "destructive" });
+    }
   };
 
   // ── Loading / error states ───────────────────────────────────────────────
@@ -479,7 +531,7 @@ export function TranslationWorkspacePage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
-                Export workspace
+                {citationOnly ? "Citation and link only" : "Export workspace"}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDownloadMarkdown} className="gap-2">
@@ -526,14 +578,7 @@ export function TranslationWorkspacePage() {
         </div>
       </header>
 
-      {/* AI disclaimer — always visible */}
-      <div className="flex items-start gap-3 p-4 rounded-xl border border-rose-200 bg-rose-50/60 dark:border-rose-900/40 dark:bg-rose-950/20">
-        <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
-        <div className="text-sm leading-relaxed">
-          <strong className="text-rose-800 dark:text-rose-300">AI Assistance is never source evidence.</strong>
-          {" "}All AI-generated content in this workspace is marked with a red border and labelled "AI — Not Evidence." It must be verified against primary sources and cited correctly before use in any research claim or publication.
-        </div>
-      </div>
+      <TranslationDisclosure />
 
       {/* Layer legend */}
       <div className="flex flex-wrap gap-2 text-xs">
@@ -574,11 +619,6 @@ export function TranslationWorkspacePage() {
               {!isCollapsed && (
                 <div className="px-4 pb-4 space-y-2">
                   <p className="text-xs text-muted-foreground leading-relaxed">{layer.description}</p>
-                  {layer.epistemic === "ai" && (
-                    <div className="flex items-center gap-1.5 text-xs text-rose-700 dark:text-rose-400 font-semibold">
-                      <AlertTriangle className="h-3.5 w-3.5" /> AI-generated — not source evidence. Verify before use.
-                    </div>
-                  )}
                   {layer.epistemic === "interpretive" && layer.key === "userInterpretation" && (
                     <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 font-semibold">
                       <User className="h-3.5 w-3.5" /> Your interpretation — labelled as researcher analysis, not primary evidence.

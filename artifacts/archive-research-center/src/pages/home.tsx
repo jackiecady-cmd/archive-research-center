@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
 import { useGetSourceStats, useListCollections, useListSources } from "@workspace/api-client-react";
-import { ArrowRight, FlaskConical, Languages, Search, Users, GitBranch, Compass, Clock } from "lucide-react";
+import { ArrowRight, FlaskConical, Languages, Search, Users, Lock, Compass, Clock } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type React from "react";
 
@@ -19,7 +19,7 @@ export function HomePage() {
           The Archive & Research Center
         </h1>
         <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-          A reference-grade digital research library for historians, theologians, genealogists, and independent scholars.
+          A reference-grade digital research library for historians, theologians, and independent scholars.
         </p>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-2">
           <Link href="/archive" className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90">
@@ -45,9 +45,8 @@ export function HomePage() {
               Not sure where to begin?
             </h2>
             <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
-              The Research Concierge builds a personalised pathway based on your background, goals, experience
-              level, and how much time you have. Whether you're a genealogist, theologian, historian, or
-              curious newcomer — get one clear next step in under a minute.
+              The Research Concierge builds a pathway from the kind of historical work you do.
+              Sign in, pick a starting point, and open a collection or a first research project.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link href="/concierge"
@@ -68,8 +67,8 @@ export function HomePage() {
                 sub: "Learn how sources are graded, what provenance means, and why evidence trails matter.",
               },
               {
-                label: "Genealogist / Family Historian",
-                sub: "Records, DNA, cross-checking ancestors — FamilySearch, Ancestry, and more.",
+                label: "Historian / Academic",
+                sub: "Provenance, confidence grades, and evidence trails across the archive.",
               },
               {
                 label: "Pastor / Ministry Leader",
@@ -146,7 +145,7 @@ export function HomePage() {
           <PathwayTile href="/projects"    title="Projects & Notes"    description="Manage your ongoing research and evaluate claims."            icon={FlaskConical} />
           <PathwayTile href="/commons"     title="Research Commons"    description="Discuss sources and methodologies with peers."               icon={Users} />
           <PathwayTile href="/translation" title="Translation Center"  description="Tools for manuscript comparison and language."               icon={Languages} />
-          <PathwayTile href="/genealogy"   title="Genealogy & DNA"     description="Map migration corridors and ancestry records."               icon={GitBranch} />
+          <PathwayTile href="/rooms"       title="Private Rooms"       description="Invitation-only discussions for a research circle."         icon={Lock} />
         </div>
       </section>
 

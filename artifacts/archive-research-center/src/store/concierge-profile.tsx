@@ -10,7 +10,7 @@ import { createContext, useContext, useState, ReactNode } from "react";
 const PROFILE_KEY = "arc_concierge_profile_v1";
 
 export type ConciergeProfile = {
-  researcherType: string;   // API id: "beginner", "genealogist", …
+  researcherType: string;   // API id: "beginner", "historian", …
   researcherLabel: string;  // Human-readable name from the path record
   experience: "beginner" | "intermediate" | "advanced";
 };

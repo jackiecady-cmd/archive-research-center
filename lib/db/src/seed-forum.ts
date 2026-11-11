@@ -3,12 +3,15 @@
  * Run via: pnpm --filter @workspace/db run seed:forum
  *
  * Creates 4 threads with 2–3 replies each, tied to existing archive sources.
- * Authors are mock researcher personas — no real auth required.
+ * Rows are owned by the seed user. Display names stay the demo personas.
  */
 
 import { db } from "./index.js";
 import { forumThreadsTable, forumRepliesTable } from "./schema/forum.js";
+import { ensureSeedUser } from "./seed-user.js";
 import { eq } from "drizzle-orm";
+
+let seedUserId = 0;
 
 async function findOrCreateThread(
   title: string,
@@ -27,7 +30,7 @@ async function findOrCreateThread(
   }
   const [created] = await db
     .insert(forumThreadsTable)
-    .values({ title, content, category, authorName, tags })
+    .values({ title, content, category, authorName, tags, userId: seedUserId })
     .returning();
   console.log(`  ✔ Thread: "${title}"`);
   return created;
@@ -48,12 +51,14 @@ async function addReply(
     console.log(`    – Reply by ${authorName} already exists`);
     return;
   }
-  await db.insert(forumRepliesTable).values({ threadId, content, authorName });
+  await db.insert(forumRepliesTable).values({ threadId, content, authorName, userId: seedUserId });
   console.log(`    ✔ Reply by ${authorName}`);
 }
 
 async function seed() {
   console.log("🌱  Starting forum seed…");
+  const seedUser = await ensureSeedUser();
+  seedUserId = seedUser.id;
 
   // ── Thread 1: Tacitus Annals XV.44 authenticity ───────────────────────────
   const t1 = await findOrCreateThread(
@@ -72,7 +77,7 @@ Key questions I'd like to discuss:
 3. **Interpolation arguments** — some scholars (e.g. Hochart, Drews) have argued the passage was inserted by a Christian copyist. What is the current critical consensus?
 
 Linking to the archive record: [Tacitus, Annals XV.44](/sources/13)`,
-    "primary-sources",
+    "Sources",
     "Dr. Sarah Chen",
     ["tacitus", "roman-sources", "historical-jesus", "textual-criticism"]
   );
@@ -127,7 +132,7 @@ The two methods broadly agree, but the C-14 range is wide. Some scholars have ra
 **Question for the group**: When these two methodologies produce overlapping but non-identical ranges, how should we weight them? And does either method have known systematic biases that affect Dead Sea Scrolls dating specifically?
 
 Archive record: [Dead Sea Scrolls — Isaiah Scroll (1QIsa-a)](/sources/15)`,
-    "primary-sources",
+    "Sources",
     "Miriam Katz",
     ["dead-sea-scrolls", "radiocarbon-dating", "palaeography", "manuscript-dating"]
   );
@@ -155,25 +160,23 @@ Gregory Doudna's *4Q Pesher Nahum* study (2002) raised this concern explicitly. 
     t2Replies
   );
 
-  // ── Thread 3: FamilySearch methodology ───────────────────────────────────
+  // ── Thread 3: indexes versus the manuscript ─────────────────────────────
   const t3 = await findOrCreateThread(
-    "FamilySearch indexes vs. original images: when is the index enough?",
+    "Catalogue indexes versus the manuscript: when is the index enough?",
     `## Practical methodology question
 
-For those doing Irish and British genealogy: when working with the Ireland Civil Registration Index or the England & Wales censuses available on FamilySearch, at what point is the index alone sufficient vs. requiring the original register image?
+When a repository publishes a catalogue index of a register or manuscript, at what point is the index alone sufficient, and when do you still need the original image or a diplomatic transcription?
 
 My workflow has been:
-1. Use index for initial triage / finding candidate records
-2. Always pull original image before recording any finding as confirmed
+1. Use the index for initial triage and to find candidate records
+2. Always consult the original, or a published facsimile, before recording a finding as confirmed
 
-But this is slow and sometimes the original images are poor quality or missing. I'm wondering whether there are cases where the index is reliable enough to record as a confirmed finding.
+That is slow, and sometimes the image is poor or the shelfmark is restricted. Are there cases where a well-reviewed index is reliable enough to cite as the finding, with the limitation stated?
 
-Relevant archive records:
-- [Ireland Civil Registration Index — Births 1864–1900](/sources/20)
-- [England & Wales Census 1911](/sources/23)`,
-    "methodology",
+I am especially interested in how people treat name variants and date errors in nineteenth-century parish and civil registers used as historical sources.`,
+    "Methodology",
     "Janet O'Brien",
-    ["genealogy", "familysearch", "ireland", "methodology", "census"]
+    ["methodology", "manuscripts", "indexes", "provenance"]
   );
 
   const t3Replies = await db
@@ -183,33 +186,33 @@ Relevant archive records:
 
   await addReply(
     t3.id,
-    `The index-vs-image question is really a question about where transcription errors are likely to occur. For the Ireland Civil Registration index, the main failure modes are:
+    `The index-versus-image question is really about where transcription errors enter. In nineteenth-century registers the usual failure modes are:
 
-1. **Name variants** — Irish names were anglicized inconsistently. "Siobhán" might be indexed as Joan, Johanna, or Jean depending on the registrar's discretion.
-2. **Townland vs. county-level reporting** — early GRO registers sometimes recorded the barony or electoral division, and indexers occasionally misread these.
-3. **Date errors** — quarter-year registration dates are frequently misread in indexes.
+1. **Name variants** — the same person is indexed under different spellings depending on the clerk.
+2. **Place-level reporting** — a town and a county of the same name get collapsed in the index.
+3. **Date errors** — quarter dates and regnal years are easy to misread.
 
-My rule of thumb: index alone is sufficient for *eliminating* candidates, but never for *confirming* a record. Even a perfect-looking match can flip when you see the original — I have had cases where the index showed a birth in Galway and the original showed Galway City, not the county, with a different registration district entirely.`,
+My rule of thumb: an index is enough to *eliminate* a candidate, not to *confirm* one. A match that looks perfect in the index can change when you see the page.`,
     "David Reinholt",
     t3Replies
   );
 
   await addReply(
     t3.id,
-    `I would add that FamilySearch indexes are crowd-sourced transcriptions of varying quality. The Ireland 1901 and 1911 Census indexes are generally very good (high volunteer review rate), but the pre-1900 civil registration indexes are patchier. For those, I treat the index as a finding aid only — never a citable source.
+    `Crowd-sourced catalogue indexes vary a lot in review. I treat a lightly reviewed index as a finding aid only, never as the citable source.
 
-The 1911 England & Wales Census is actually one of the more reliable FamilySearch indexes because the original returns were filled in by the householder (not an enumerator), so there is less transcription-chain uncertainty. But you still want the image for exact age, birthplace county, and occupation details that sometimes get truncated in the index fields.
+Where the original return was written by the person named in it, there is one less copyist in the chain, but you still want the image for occupation, place, and the exact wording the index truncated.
 
-One practical tip: the original 1911 returns for England are available in full at The National Archives (Kew) digitized collection. Cross-checking between FamilySearch and TNAonline is good practice for any important finding.`,
+When two repositories have digitized the same series, comparing them is worth the time before you cite either transcription.`,
     "Janet O'Brien",
     t3Replies
   );
 
   await addReply(
     t3.id,
-    `Agreed with the above. I would frame this as an evidence classification problem. The Genealogical Proof Standard requires "reasonably exhaustive search" — which typically means original records, not just indexes. If you record an index entry as a confirmed finding, you are implicitly asserting that the index accurately represents the original, which is an additional claim that requires its own support.
+    `Agreed. This is an evidence classification problem. If you record an index entry as a confirmed finding, you are asserting that the index accurately represents the original, and that assertion needs its own support.
 
-The practical exception: when the original image is demonstrably missing or destroyed (common for pre-1922 Irish records post-Four Courts fire), a contemporaneous transcription or index entry may be the best available evidence. In that case, document the limitation explicitly.`,
+The practical exception is when the original is missing or destroyed. A contemporaneous transcription may then be the best surviving evidence. Say that limitation in the note, and do not quietly upgrade the index to the status of the lost page.`,
     "Prof. Michael Torres",
     t3Replies
   );
@@ -227,7 +230,7 @@ The James Ossuary (archive record: [Ossuary Inscription of James, Son of Joseph,
 The first half of the inscription ("James son of Joseph") is widely accepted as authentic. The second half ("brother of Jesus") has been the subject of a long-running authenticity dispute, including a seven-year Israeli forgery trial that ended in acquittal (2012) — though the acquittal was on grounds of insufficient evidence rather than demonstrated authenticity.
 
 I want to start a thread tracking the state of scholarship since the acquittal. Has anything materially changed?`,
-    "primary-sources",
+    "Sources",
     "Prof. Michael Torres",
     ["epigraphy", "ossuary", "james", "authenticity", "first-century"]
   );
