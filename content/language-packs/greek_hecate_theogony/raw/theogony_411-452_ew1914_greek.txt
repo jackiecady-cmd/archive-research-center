@@ -1,0 +1,69 @@
+# Hesiod, Theogony 411–452
+# Greek text as printed in Hugh G. Evelyn-White, Hesiod, the Homeric Hymns
+# and Homerica, Loeb Classical Library (London: Heinemann / New York:
+# Macmillan, 1914), via the Perseus Digital Library TEI XML chunk
+# (Perseus:text:1999.01.0129:card=404), fetched 10 November 2026.
+#
+# Source URL (HTML):
+# https://www.perseus.tufts.edu/hopper/text?doc=Perseus:text:1999.01.0129:card=404
+# Source URL (XML):
+# https://www.perseus.tufts.edu/hopper/xmlchunk?doc=Perseus%3Atext%3A1999.01.0129%3Acard%3D404
+#
+# License: the 1914 wording is in the public domain in the US (published
+# 1914) and in the EU/UK (Evelyn-White d. 1924; life+70 expired end of
+# 1994). Perseus also describes public-domain texts as available for XML
+# download (https://www.perseus.tufts.edu/hopper/help/copyright.jsp,
+# consulted 10 November 2026). Perseus markup/encoding is commonly
+# offered under CC BY-SA; this file is a plain-text extract of the 1914
+# wording only, with line numbers from the Perseus TEI. Attribution:
+# Evelyn-White 1914; digital source Perseus Digital Library, Tufts
+# University. If this extract is treated as a Perseus XML derivative,
+# CC BY-SA share-alike would apply to the markup; the underlying 1914
+# wording remains PD.
+#
+# Line numbers follow the Perseus/Loeb display, including the printed
+# order 425, 427, 426, 428 and 429, 434, 430–433. See pack.md
+# Uncertainties.
+
+411 ἢ δ᾽ ὑποκυσαμένη Ἑκάτην τέκε, τὴν περὶ πάντων
+412 Ζεὺς Κρονίδης τίμησε: πόρεν δέ οἱ ἀγλαὰ δῶρα,
+413 μοῖραν ἔχειν γαίης τε καὶ ἀτρυγέτοιο θαλάσσης.
+414 ἣ δὲ καὶ ἀστερόεντος ἀπ᾽ οὐρανοῦ ἔμμορε τιμῆς
+415 ἀθανάτοις τε θεοῖσι τετιμένη ἐστὶ μάλιστα.
+416 καὶ γὰρ νῦν, ὅτε πού τις ἐπιχθονίων ἀνθρώπων
+417 ἔρδων ἱερὰ καλὰ κατὰ νόμον ἱλάσκηται,
+418 κικλῄσκει Ἑκάτην. πολλή τέ οἱ ἕσπετο τιμὴ
+419 ῥεῖα μάλ᾽, ᾧ πρόφρων γε θεὰ ὑποδέξεται εὐχάς,
+420 καί τέ οἱ ὄλβον ὀπάζει, ἐπεὶ δύναμίς γε πάρεστιν.
+421 ὅσσοι γὰρ Γαίης τε καὶ Οὐρανοῦ ἐξεγένοντο
+422 καὶ τιμὴν ἔλαχον, τούτων ἔχει αἶσαν ἁπάντων.
+423 οὐδέ τί μιν Κρονίδης ἐβιήσατο οὐδέ τ᾽ ἀπηύρα,
+424 ὅσσ᾽ ἔλαχεν Τιτῆσι μετὰ προτέροισι θεοῖσιν,
+425 ἀλλ᾽ ἔχει, ὡς τὸ πρῶτον ἀπ᾽ ἀρχῆς ἔπλετο δασμός,
+427 καὶ γέρας ἐν γαίῃ τε καὶ οὐρανῷ ἠδὲ θαλάσσῃ:
+426 οὐδ᾽, ὅτι μουνογενής, ἧσσον θεὰ ἔμμορε τιμῆς,
+428 ἀλλ᾽ ἔτι καὶ πολὺ μᾶλλον, ἐπεὶ Ζεὺς τίεται αὐτήν.
+429 ᾧ δ᾽ ἐθέλει, μεγάλως παραγίγνεται ἠδ᾽ ὀνίνησιν:
+434 ἔν τε δίκῃ βασιλεῦσι παρ᾽ αἰδοίοισι καθίζει,
+430 ἔν τ᾽ ἀγορῇ λαοῖσι μεταπρέπει, ὅν κ᾽ ἐθέλῃσιν:
+431 ἠδ᾽ ὁπότ᾽ ἐς πόλεμον φθεισήνορα θωρήσσωνται
+432 ἀνέρες, ἔνθα θεὰ παραγίγνεται, οἷς κ᾽ ἐθέλῃσι
+433 νίκην προφρονέως ὀπάσαι καὶ κῦδος ὀρέξαι.
+435 ἐσθλὴ δ᾽ αὖθ᾽ ὁπότ᾽ ἄνδρες ἀεθλεύωσιν ἀγῶνι,
+436 ἔνθα θεὰ καὶ τοῖς παραγίγνεται ἠδ᾽ ὀνίνησιν:
+437 νικήσας δὲ βίῃ καὶ κάρτεϊ καλὸν ἄεθλον
+438 ῥεῖα φέρει χαίρων τε, τοκεῦσι δὲ κῦδος ὀπάζει.
+439 ἐσθλὴ δ᾽ ἱππήεσσι παρεστάμεν, οἷς κ᾽ ἐθέλῃσιν.
+440 καὶ τοῖς, οἳ γλαυκὴν δυσπέμφελον ἐργάζονται,
+441 εὔχονται δ᾽ Ἑκάτῃ καὶ ἐρικτύπῳ Ἐννοσιγαίῳ,
+442 ῥηιδίως ἄγρην κυδρὴ θεὸς ὤπασε πολλήν,
+443 ῥεῖα δ᾽ ἀφείλετο φαινομένην, ἐθέλουσά γε θυμῷ.
+444 ἐσθλὴ δ᾽ ἐν σταθμοῖσι σὺν Ἑρμῇ ληίδ᾽ ἀέξειν:
+445 βουκολίας δ᾽ ἀγέλας τε καὶ αἰπόλια πλατέ᾽ αἰγῶν
+446 ποίμνας τ᾽ εἰροπόκων ὀίων, θυμῷ γ᾽ ἐθέλουσα,
+447 ἐξ ὀλίγων βριάει κἀκ πολλῶν μείονα θῆκεν.
+448 οὕτω τοι καὶ μουνογενὴς ἐκ μητρὸς ἐοῦσα
+449 πᾶσι μετ᾽ ἀθανάτοισι τετίμηται γεράεσσιν.
+450 θῆκε δέ μιν Κρονίδης κουροτρόφον, οἳ μετ᾽ ἐκείνην
+451 ὀφθαλμοῖσιν ἴδοντο φάος πολυδερκέος Ἠοῦς.
+452 οὕτως ἐξ ἀρχῆς κουροτρόφος, αἳ δέ τε τιμαί.

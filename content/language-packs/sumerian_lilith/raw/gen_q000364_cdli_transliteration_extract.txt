@@ -1,0 +1,21 @@
+# Gilgamesh, Enkidu and the Netherworld
+# CDLI Literary 000364 composite, P469670 / Q000364
+# https://cdli.earth/artifacts/469670
+# Fetched 11 November 2026. Credit: CDLI, https://cdli.earth
+# Sign transliteration only (CDLI ATF-style). No English from this page
+# is stored here for packing (ETCSL-aligned English is REFERENCE-ONLY).
+# Line numbers are those of this CDLI composite; they correspond to
+# ETCSL 1.8.1.4 line numbers for this stretch (cited as a locator only).
+
+40 mu 5(disz)-am3 mu 1(u)-am3 ba-e-zal-la-ri
+41 gesz ba-gur4 kusz-bi nu-mu-un-da-dar
+42 ur2-bi-a musz tu6 nu-zu-e gud3 im-ma-ni-ib-us2
+43 pa-bi-a muszen anzu4{muszen}-de3 amar im-ma-ni-ib-gar
+44 szab-bi-a ki-sikil lil2-la2-ke4 e2 im-ma-ni-ib-du3
+45 ki-sikil zu2 bir9-bir9 sza3 hul2-hul2
+46 ku3 {d}inanna-ke4 er2 e-ne ba-sze8-sze8
+
+140 ur2-bi-a musz tu6 nu-zu-e sag gesz ba-an-ra
+141 pa-bi-a muszen anzu{muszen}-de3 amar-bi szu ba-an-ti hur-sag-sze3 ba-an-ku4
+142 szab-ba-bi-a ki-sikil lil2-la2-ke4 e2 im-ma-an-ni-in-zal
+143 e2-ri-e2-ri-sze3 ba-an-kar-kar-re
