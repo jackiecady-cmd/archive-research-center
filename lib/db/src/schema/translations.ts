@@ -14,7 +14,8 @@ import { sourcesTable } from "./sources";
 /**
  * Translation workspace records — one row per (researcher × source).
  * Each field is a distinct epistemic layer. Layers stay separate in the UI.
- * The workspace holds human-verified text only.
+ * English translations are disclosed with TRANSLATION_DISCLOSURE from
+ * @workspace/config. Model and provider names stay out of public responses.
  */
 export const translationsTable = pgTable(
   "translations",

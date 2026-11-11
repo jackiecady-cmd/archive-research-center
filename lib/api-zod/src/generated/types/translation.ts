@@ -27,6 +27,8 @@ export interface Translation {
   commentary?: string | null;
   /** @nullable */
   userInterpretation?: string | null;
+  /** Public translation disclosure. Same wording as Source.translationDisclosure. */
+  translationDisclosure: string;
   createdAt: string;
   updatedAt: string;
 }

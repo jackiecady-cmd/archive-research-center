@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SourceTypeBadge, ConfidenceBadge } from "@/components/source-badges";
+import { TranslationDisclosure } from "@/components/translation-disclosure";
 import {
   Languages, Search, ArrowRight, BookOpen,
   FileText, Clock, Layers, History, RotateCcw,
@@ -105,6 +106,7 @@ export function TranslationPage() {
           original script through published translations to the researcher's own
           interpretation, so one layer cannot be mistaken for another.
         </p>
+        <TranslationDisclosure />
       </header>
 
       {/* Epistemic layer system */}
@@ -244,9 +246,12 @@ export function TranslationPage() {
                 </CardHeader>
                 <CardContent className="flex flex-col flex-1 gap-3">
                   {ws.preview && (
-                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 font-mono bg-secondary/30 rounded p-2">
-                      {ws.preview}
-                    </p>
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 font-mono bg-secondary/30 rounded p-2">
+                        {ws.preview}
+                      </p>
+                      <TranslationDisclosure />
+                    </div>
                   )}
                   <Button asChild size="sm" className="w-full mt-auto gap-2">
                     <Link href={`/translation/${ws.sourceId}`}>

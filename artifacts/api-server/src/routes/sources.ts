@@ -9,6 +9,7 @@ import {
 import { requireEditor } from "../auth/middleware";
 import { sendValidationError } from "../lib/http";
 import { likeContains, parseListLimit, parseListPage } from "../lib/security";
+import { TRANSLATION_DISCLOSURE } from "@workspace/config";
 import { publicSourceType } from "../lib/source-type";
 
 const router = Router();
@@ -52,6 +53,7 @@ function formatSource(
     rightsStatement: row.rightsStatement ?? null,
     description: row.description ?? null,
     excerpt: row.excerpt ?? null,
+    translationDisclosure: TRANSLATION_DISCLOSURE,
     originalLanguageText: row.originalLanguageText ?? null,
     externalUrl: row.externalUrl ?? null,
     tags: row.tags,

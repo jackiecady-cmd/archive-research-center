@@ -1085,7 +1085,7 @@ components:
 
     Source:
       type: object
-      required: [id, title, sourceType, collectionSlug, provenance, confidence, availability]
+      required: [id, title, sourceType, collectionSlug, provenance, confidence, availability, translationDisclosure]
       properties:
         id: { type: number }
         title: { type: string }
@@ -1117,6 +1117,9 @@ components:
         rightsStatement: { type: ["string", "null"] }
         description: { type: ["string", "null"] }
         excerpt: { type: ["string", "null"] }
+        translationDisclosure:
+          type: string
+          description: Public translation disclosure. Wording is TRANSLATION_DISCLOSURE in @workspace/config and is pending legal review. Do not put a model or provider name in this field.
         originalLanguageText: { type: ["string", "null"] }
         externalUrl: { type: ["string", "null"] }
         tags: { type: array, maxItems: 50, items: { type: string } }
@@ -1599,7 +1602,7 @@ components:
 
     Translation:
       type: object
-      required: [id, sourceId, createdAt, updatedAt]
+      required: [id, sourceId, createdAt, updatedAt, translationDisclosure]
       properties:
         id: { type: number }
         sourceId: { type: number }
@@ -1612,6 +1615,9 @@ components:
         publishedTranslationAttribution: { type: ["string", "null"] }
         commentary: { type: ["string", "null"] }
         userInterpretation: { type: ["string", "null"] }
+        translationDisclosure:
+          type: string
+          description: Public translation disclosure. Same wording as Source.translationDisclosure.
         createdAt: { type: string }
         updatedAt: { type: string }
 
@@ -1630,7 +1636,7 @@ components:
 
     TranslationWorkspaceSummary:
       type: object
-      required: [id, sourceId, sourceTitle, filledLayerCount, updatedAt]
+      required: [id, sourceId, sourceTitle, filledLayerCount, updatedAt, translationDisclosure]
       properties:
         id: { type: number }
         sourceId: { type: number }
@@ -1641,4 +1647,7 @@ components:
         sourceCollectionSlug: { type: ["string", "null"] }
         filledLayerCount: { type: number }
         preview: { type: ["string", "null"] }
+        translationDisclosure:
+          type: string
+          description: Public translation disclosure. Same wording as Source.translationDisclosure.
         updatedAt: { type: string }

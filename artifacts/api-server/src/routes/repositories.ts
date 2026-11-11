@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { desc, eq, sql } from "drizzle-orm";
 import { db, repositoriesTable, sourcesTable } from "@workspace/db";
+import { TRANSLATION_DISCLOSURE } from "@workspace/config";
 import { publicSourceType } from "../lib/source-type";
 
 const router = Router();
@@ -50,6 +51,7 @@ function formatSource(
     rightsStatement: source.rightsStatement ?? null,
     description: source.description ?? null,
     excerpt: source.excerpt ?? null,
+    translationDisclosure: TRANSLATION_DISCLOSURE,
     originalLanguageText: source.originalLanguageText ?? null,
     externalUrl: source.externalUrl ?? null,
     tags: source.tags,

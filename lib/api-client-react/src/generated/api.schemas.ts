@@ -148,6 +148,8 @@ export interface Source {
   description?: string | null;
   /** @nullable */
   excerpt?: string | null;
+  /** Public translation disclosure. Wording is TRANSLATION_DISCLOSURE in @workspace/config and is pending legal review. Do not put a model or provider name in this field. */
+  translationDisclosure: string;
   /** @nullable */
   originalLanguageText?: string | null;
   /** @nullable */
@@ -622,6 +624,8 @@ export interface Translation {
   commentary?: string | null;
   /** @nullable */
   userInterpretation?: string | null;
+  /** Public translation disclosure. Same wording as Source.translationDisclosure. */
+  translationDisclosure: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -653,6 +657,8 @@ export interface TranslationWorkspaceSummary {
   filledLayerCount: number;
   /** @nullable */
   preview?: string | null;
+  /** Public translation disclosure. Same wording as Source.translationDisclosure. */
+  translationDisclosure: string;
   updatedAt: string;
 }
 

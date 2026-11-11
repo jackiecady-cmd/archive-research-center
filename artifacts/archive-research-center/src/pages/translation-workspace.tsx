@@ -28,7 +28,9 @@ import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { buildPrintDocument } from "@/lib/print-html";
+import { TRANSLATION_DISCLOSURE } from "@workspace/config";
 import { ConfidenceBadge, SourceTypeBadge } from "@/components/source-badges";
+import { TranslationDisclosure } from "@/components/translation-disclosure";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -324,7 +326,11 @@ export function TranslationWorkspacePage() {
     if (source?.language) lines.push(`**Language:** ${source.language}`);
     if (source?.confidence) lines.push(`**Confidence:** ${source.confidence}`);
     if (source?.provenance) { lines.push(""); lines.push(`**Provenance:** ${source.provenance}`); }
-    lines.push(""); lines.push("---"); lines.push("");
+    lines.push("");
+    lines.push(TRANSLATION_DISCLOSURE);
+    lines.push("");
+    lines.push("---");
+    lines.push("");
 
     type LayerSpec = { key: keyof TranslationLayer; heading: string; disclaimer?: string };
     const specs: LayerSpec[] = [
@@ -509,6 +515,8 @@ export function TranslationWorkspacePage() {
           </span>
         </div>
       </header>
+
+      <TranslationDisclosure />
 
       {/* Layer legend */}
       <div className="flex flex-wrap gap-2 text-xs">

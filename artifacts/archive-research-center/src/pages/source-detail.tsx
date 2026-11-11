@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { SourceTypeBadge, ConfidenceBadge, AvailabilityBadge, RepositoryAccessBadge } from "@/components/source-badges";
+import { TranslationDisclosure } from "@/components/translation-disclosure";
 import {
   ExternalLink, BookmarkPlus, ArrowLeft, Building2, Quote,
   AlertTriangle, Languages, Pencil, Check, X,
@@ -121,6 +122,7 @@ export function SourceDetailPage() {
               <Quote className="h-5 w-5 text-muted-foreground" />
               Excerpt / Description
             </h3>
+            {source.excerpt ? <TranslationDisclosure /> : null}
             <div className="prose prose-stone dark:prose-invert max-w-none">
               <p className="text-lg leading-relaxed text-foreground/90 font-serif">
                 {source.excerpt || source.description}

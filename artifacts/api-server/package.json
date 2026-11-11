@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@workspace/api-zod": "workspace:*",
+    "@workspace/config": "workspace:*",
     "@workspace/db": "workspace:*",
     "argon2": "^0.43.0",
     "cookie-parser": "^1.4.7",

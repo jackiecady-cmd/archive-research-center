@@ -21,5 +21,7 @@ export interface TranslationWorkspaceSummary {
   filledLayerCount: number;
   /** @nullable */
   preview?: string | null;
+  /** Public translation disclosure. Same wording as Source.translationDisclosure. */
+  translationDisclosure: string;
   updatedAt: string;
 }

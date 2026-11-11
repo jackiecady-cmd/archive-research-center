@@ -2,6 +2,7 @@ import { Router } from "express";
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { db, translationsTable, sourcesTable } from "@workspace/db";
 import { CreateTranslationBody, UpdateTranslationBody } from "@workspace/api-zod";
+import { TRANSLATION_DISCLOSURE } from "@workspace/config";
 import { currentUser } from "../auth/middleware";
 import { parseIntParam, sendValidationError } from "../lib/http";
 import { likeContains, parseListLimit } from "../lib/security";
@@ -40,6 +41,7 @@ function formatTranslation(row: TRow) {
     publishedTranslationAttribution: row.publishedTranslationAttribution ?? null,
     commentary: row.commentary ?? null,
     userInterpretation: row.userInterpretation ?? null,
+    translationDisclosure: TRANSLATION_DISCLOSURE,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -100,6 +102,7 @@ router.get("/translations/workspaces", async (req, res): Promise<void> => {
       sourceCollectionSlug: src?.collectionSlug ?? null,
       filledLayerCount,
       preview: preview ? preview.slice(0, 240) : null,
+      translationDisclosure: TRANSLATION_DISCLOSURE,
       updatedAt: workspace.updatedAt.toISOString(),
     };
   }));

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { eq, desc, sql } from "drizzle-orm";
 import { db, collectionsTable, repositoriesTable, sourcesTable } from "@workspace/db";
+import { TRANSLATION_DISCLOSURE } from "@workspace/config";
 import { publicSourceType } from "../lib/source-type";
 
 const router = Router();
@@ -79,6 +80,7 @@ router.get("/collections/:slug", async (req, res): Promise<void> => {
       rightsStatement: s.rightsStatement ?? null,
       description: s.description ?? null,
       excerpt: s.excerpt ?? null,
+      translationDisclosure: TRANSLATION_DISCLOSURE,
       externalUrl: s.externalUrl ?? null,
       tags: s.tags,
       createdAt: s.createdAt.toISOString(),

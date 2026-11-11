@@ -78,6 +78,9 @@ importers:
       '@workspace/api-zod':
         specifier: workspace:*
         version: link:../../lib/api-zod
+      '@workspace/config':
+        specifier: workspace:*
+        version: link:../../lib/config
       '@workspace/db':
         specifier: workspace:*
         version: link:../../lib/db
@@ -244,6 +247,9 @@ importers:
       '@workspace/api-client-react':
         specifier: workspace:*
         version: link:../../lib/api-client-react
+      '@workspace/config':
+        specifier: workspace:*
+        version: link:../../lib/config
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1
@@ -334,6 +340,8 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 4.6.7
+
+  lib/config: {}
 
   lib/db:
     dependencies:

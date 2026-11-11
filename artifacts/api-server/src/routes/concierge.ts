@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, collectionsTable, sourcesTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { sendValidationError } from "../lib/http";
+import { TRANSLATION_DISCLOSURE } from "@workspace/config";
 import { publicSourceType } from "../lib/source-type";
 import { recommendBody } from "../validation/bodies";
 
@@ -123,6 +124,7 @@ router.post("/concierge/recommend", async (req, res): Promise<void> => {
     rightsStatement: source.rightsStatement ?? null,
     description: source.description ?? null,
     excerpt: source.excerpt ?? null,
+    translationDisclosure: TRANSLATION_DISCLOSURE,
     externalUrl: source.externalUrl ?? null,
     tags: source.tags,
     createdAt: source.createdAt.toISOString(),

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Clock, FileText, Search, X } from "lucide-react";
 import { SourceTypeBadge, ConfidenceBadge, AvailabilityBadge } from "@/components/source-badges";
+import { TranslationDisclosure } from "@/components/translation-disclosure";
 
 // ── Inline debounce ──────────────────────────────────────────────────────────
 function useDebounce<T>(value: T, delay: number): T {
@@ -271,6 +272,7 @@ export function CollectionDetailPage() {
                     <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                       {source.excerpt || source.description || "No excerpt available."}
                     </p>
+                    {source.excerpt ? <div className="mt-3"><TranslationDisclosure /></div> : null}
                   </CardContent>
                   <CardFooter className="bg-secondary/20 border-t border-border/50 py-3 text-xs text-muted-foreground flex flex-wrap gap-4 items-center">
                     {source.author && (
