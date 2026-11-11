@@ -1,0 +1,47 @@
+# Hesiod, Theogony 411–452
+# English: Hugh G. Evelyn-White, Hesiod, the Homeric Hymns and Homerica
+# typo fix: Hymns, Loeb Classical Library (London: Heinemann / New York:
+# Macmillan, 1914), via the Perseus Digital Library TEI XML chunk
+# (Perseus:text:1999.01.0130:card=404), fetched 10 November 2026.
+#
+# Source URL (HTML):
+# https://www.perseus.tufts.edu/hopper/text?doc=Perseus:text:1999.01.0130:card=404
+# Source URL (XML):
+# https://www.perseus.tufts.edu/hopper/xmlchunk?doc=Perseus%3Atext%3A1999.01.0130%3Acard%3D404
+#
+# License: US public domain (published 1914); EU/UK public domain
+# (translator d. 1924). Perseus public-domain XML download policy:
+# https://www.perseus.tufts.edu/hopper/help/copyright.jsp
+# (consulted 10 November 2026). Attribution: Evelyn-White 1914; digital
+# source Perseus Digital Library, Tufts University.
+#
+# Line groups follow Perseus milestones, including the printed order
+# 425, 427, 426, 428 and 429, 434, 430–433.
+#
+# A Loeb footnote at 448 (Van Lennep, on Hecate as an only child without
+# brothers to support her claim) is not copied here; see the Perseus XML
+# and pack commentary.
+#
+# Note: at 421 the 1914 English has "Earth and Ocean"; the Greek of this
+# same edition is Γαίης τε καὶ Οὐρανοῦ ("Earth and Heaven"). See pack.md.
+
+411–415
+And she conceived and bore Hecate whom Zeus the son of Cronos honored above all. He gave her splendid gifts, to have a share of the earth and the unfruitful sea. She received honor also in starry heaven, and is honored exceedingly by the deathless gods.
+
+416–420
+For to this day, whenever any one of men on earth offers rich sacrifices and prays for favor according to custom, he calls upon Hecate. Great honor comes full easily to him whose prayers the goddess receives favorably, and she bestows wealth upon him; for the power surely is with her.
+
+421–428
+For as many as were born of Earth and Ocean amongst all these she has her due portion. The son of Cronos did her no wrong nor took anything away of all that was her portion among the former Titan gods: but she holds, as the division was at the first from the beginning, privilege both in earth, and in heaven, and in sea. Also, because she is an only child, the goddess receives not less honor, but much more still, for Zeus honors her.
+
+429–434
+Whom she will she greatly aids and advances: she sits by worshipful kings in judgement, and in the assembly whom she will is distinguished among the people. And when men arm themselves for the battle that destroys men, then the goddess is at hand to give victory and grant glory readily to whom she will.
+
+435–439
+Good is she also when men contend at the games, for there too the goddess is with them and profits them: and he who by might and strength gets the victory wins the rich prize easily with joy, and brings glory to his parents. And she is good to stand by horsemen, whom she will:
+
+440–447
+and to those whose business is in the grey discomfortable sea, and who pray to Hecate and the loud-crashing Earth-Shaker, easily the glorious goddess gives great catch, and easily she takes it away as soon as seen, if so she will. She is good in the byre with Hermes to increase the stock. The droves of kine and wide herds of goats and flocks of fleecy sheep, if she will, she increases from a few, or makes many to be less.
+
+448–452
+So, then, albeit her mother's only child, she is honored amongst all the deathless gods. And the son of Cronos made her a nurse of the young who after that day saw with their eyes the light of all-seeing Dawn. So from the beginning she is a nurse of the young, and these are her honors.
