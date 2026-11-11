@@ -20,7 +20,7 @@ export function MembershipPage() {
       <header className="space-y-4 text-center max-w-2xl mx-auto">
         <h1 className="text-3xl sm:text-4xl font-serif text-foreground">Archive Membership</h1>
         <p className="text-muted-foreground">
-          Sustain the preservation of historical texts and gain access to restricted academic collections, advanced research tools, and the translation center.
+          Sustain the preservation of historical texts and use the research tools and the translation center. A membership fee does not unlock license-restricted, link-only, or catalogue-only holdings.
         </p>
       </header>
 

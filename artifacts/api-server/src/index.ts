@@ -1,3 +1,4 @@
+import { retentionWarnings } from "@workspace/config/legal";
 import app from "./app";
 import { logger } from "./lib/logger";
 
@@ -6,6 +7,10 @@ const port = Number(rawPort);
 
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
+}
+
+for (const warning of retentionWarnings()) {
+  logger.warn(warning);
 }
 
 app.listen(port, (err) => {

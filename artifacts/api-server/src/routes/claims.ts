@@ -11,6 +11,7 @@ import { ownedBy, whereAll } from "../auth/ownership";
 import type { SessionUser } from "../auth/session";
 import { parseIntParam, sendValidationError } from "../lib/http";
 import { TRANSLATION_DISCLOSURE } from "@workspace/config";
+import { visibleExcerpt } from "../lib/holding";
 import { publicSourceType } from "../lib/source-type";
 
 const router = Router();
@@ -72,7 +73,7 @@ async function formatEvidence(row: typeof evidenceTable.$inferSelect) {
       provenance: src.provenance, confidence: src.confidence,
       chronology: src.chronology ?? null, availability: src.availability,
       rightsStatement: src.rightsStatement ?? null, description: src.description ?? null,
-      excerpt: src.excerpt ?? null, translationDisclosure: TRANSLATION_DISCLOSURE, externalUrl: src.externalUrl ?? null,
+      excerpt: visibleExcerpt(src), translationDisclosure: TRANSLATION_DISCLOSURE, externalUrl: src.externalUrl ?? null,
       tags: src.tags, createdAt: src.createdAt.toISOString(),
     } : undefined,
     role: row.role,

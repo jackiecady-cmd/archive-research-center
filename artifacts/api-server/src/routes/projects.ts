@@ -10,6 +10,7 @@ import {
   evidenceTable,
 } from "@workspace/db";
 import { TRANSLATION_DISCLOSURE } from "@workspace/config";
+import { visibleExcerpt } from "../lib/holding";
 import { publicSourceType } from "../lib/source-type";
 import {
   CreateResearchProjectBody,
@@ -150,7 +151,7 @@ router.get("/research-projects/:id", async (req, res): Promise<void> => {
         provenance: src.provenance, confidence: src.confidence,
         chronology: src.chronology ?? null, availability: src.availability,
         rightsStatement: src.rightsStatement ?? null, description: src.description ?? null,
-        excerpt: src.excerpt ?? null, translationDisclosure: TRANSLATION_DISCLOSURE, externalUrl: src.externalUrl ?? null,
+        excerpt: visibleExcerpt(src), translationDisclosure: TRANSLATION_DISCLOSURE, externalUrl: src.externalUrl ?? null,
         tags: src.tags, createdAt: src.createdAt.toISOString(),
       } : undefined,
       userNotes: ss.userNotes ?? null,
@@ -240,7 +241,7 @@ router.get("/research-projects/:projectId/saved-sources", async (req, res): Prom
         provenance: src.provenance, confidence: src.confidence,
         chronology: src.chronology ?? null, availability: src.availability,
         rightsStatement: src.rightsStatement ?? null, description: src.description ?? null,
-        excerpt: src.excerpt ?? null, translationDisclosure: TRANSLATION_DISCLOSURE, externalUrl: src.externalUrl ?? null,
+        excerpt: visibleExcerpt(src), translationDisclosure: TRANSLATION_DISCLOSURE, externalUrl: src.externalUrl ?? null,
         tags: src.tags, createdAt: src.createdAt.toISOString() } : undefined,
       userNotes: ss.userNotes ?? null,
       addedAt: ss.addedAt.toISOString(),
@@ -279,7 +280,7 @@ router.post("/research-projects/:projectId/saved-sources", async (req, res): Pro
       provenance: src.provenance, confidence: src.confidence,
       chronology: src.chronology ?? null, availability: src.availability,
       rightsStatement: src.rightsStatement ?? null, description: src.description ?? null,
-      excerpt: src.excerpt ?? null, translationDisclosure: TRANSLATION_DISCLOSURE, externalUrl: src.externalUrl ?? null,
+      excerpt: visibleExcerpt(src), translationDisclosure: TRANSLATION_DISCLOSURE, externalUrl: src.externalUrl ?? null,
       tags: src.tags, createdAt: src.createdAt.toISOString() } : undefined,
     userNotes: row.userNotes ?? null,
     addedAt: row.addedAt.toISOString(),

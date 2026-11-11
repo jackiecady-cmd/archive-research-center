@@ -3,6 +3,7 @@ import { requireUser } from "../auth/middleware";
 
 const router = Router();
 
+// These prices are not for sale and do not unlock license-restricted, link-only, or catalogue-only holdings.
 const PLANS = [
   {
     id: "researcher-monthly",

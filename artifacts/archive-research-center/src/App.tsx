@@ -24,6 +24,7 @@ import { TranslationPage } from "@/pages/translation";
 import { TranslationWorkspacePage } from "@/pages/translation-workspace";
 import { RoomsPage } from "@/pages/rooms";
 import { AccountPage } from "@/pages/account";
+import { LegalPage } from "@/pages/legal";
 import { MembershipPage } from "@/pages/membership";
 import { SignInPage } from "@/pages/sign-in";
 import { SignUpPage } from "@/pages/sign-up";
@@ -66,6 +67,7 @@ function Router() {
           <Route path="/sign-up" component={SignUpPage} />
           <Route path="/account" component={AccountPage} />
           <Route path="/membership">{() => <RequireAuth><MembershipPage /></RequireAuth>}</Route>
+          <Route path="/legal/:slug" component={LegalPage} />
           <Route component={NotFound} />
         </Switch>
       </RoutedErrorBoundary>

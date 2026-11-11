@@ -3,6 +3,7 @@ import { db, collectionsTable, sourcesTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { sendValidationError } from "../lib/http";
 import { TRANSLATION_DISCLOSURE } from "@workspace/config";
+import { visibleExcerpt } from "../lib/holding";
 import { publicSourceType } from "../lib/source-type";
 import { recommendBody } from "../validation/bodies";
 
@@ -123,7 +124,7 @@ router.post("/concierge/recommend", async (req, res): Promise<void> => {
     availability: source.availability,
     rightsStatement: source.rightsStatement ?? null,
     description: source.description ?? null,
-    excerpt: source.excerpt ?? null,
+    excerpt: visibleExcerpt(source),
     translationDisclosure: TRANSLATION_DISCLOSURE,
     externalUrl: source.externalUrl ?? null,
     tags: source.tags,

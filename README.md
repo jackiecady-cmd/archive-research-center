@@ -93,6 +93,13 @@ access. That attempt is stored for the administrator and the comp delegate,
 including the IP address and user agent, and can be sent to
 `COMP_INCIDENT_WEBHOOK_URL` when that variable is set. `COMP_INCIDENT_NOTIFY_EMAIL`
 selects an address for a future mail transport and does not send mail.
+`LEGAL_PAGES_LIVE` defaults off. Legal drafts stay unrouted until it is set,
+and any draft that still contains a `[BRACKETED]` placeholder stays unrouted
+even then. Administrators can preview those drafts. Retention variables
+(`RETENTION_COMP_CODE_INCIDENTS`, `RETENTION_CLOSED_ACCOUNTS`,
+`RETENTION_FORUM_POSTS`, `RETENTION_PRIVATE_ROOM_MESSAGES`) have no default
+period. If one is unset, the API logs a warning at startup and does not
+delete those records.
 Only an administrator, plus at most one designated delegate, can create
 codes. Revoking a code removes the comp grant.
 If the account also has paid billing, it falls back to paid. Otherwise it

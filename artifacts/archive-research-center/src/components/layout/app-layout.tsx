@@ -8,6 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { apiSend } from "@/lib/api";
+import { SiteFooter } from "@/components/site-footer";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 const NAV_ITEMS = [
@@ -173,6 +174,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="md:hidden h-[52px] flex-shrink-0" />
         <div className="flex-1 overflow-y-auto">
           {children}
+          <SiteFooter />
         </div>
       </main>
     </div>

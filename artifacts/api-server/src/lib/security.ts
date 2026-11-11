@@ -42,6 +42,8 @@ export function isPublicRead(method: string, path: string): boolean {
   if (method !== "GET" && method !== "HEAD") return false;
   if (PUBLIC_GET.has(path)) return true;
   if (/^\/sources\/\d+$/.test(path)) return true;
+  if (/^\/sources\/\d+\/export$/.test(path)) return true;
+  if (path === "/legal/pages" || /^\/legal\/pages\/[a-z0-9-]+$/.test(path)) return true;
   if (/^\/collections\/[^/]+$/.test(path)) return true;
   if (/^\/repositories\/[^/]+$/.test(path)) return true;
   if (/^\/forum\/threads\/\d+$/.test(path)) return true;

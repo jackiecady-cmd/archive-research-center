@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { buildPrintDocument } from "@/lib/print-html";
 import { TRANSLATION_DISCLOSURE } from "@workspace/config";
+import { isCitationOnly } from "@workspace/config/legal";
 import { ConfidenceBadge, SourceTypeBadge } from "@/components/source-badges";
 import { TranslationDisclosure } from "@/components/translation-disclosure";
 import {
@@ -365,33 +366,70 @@ export function TranslationWorkspacePage() {
     return lines.join("\n");
   };
 
-  const handleDownloadMarkdown = () => {
-    const md = buildMarkdown();
-    const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${(source?.title ?? "translation").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({ title: "Downloaded", description: "Markdown file saved." });
+  const citationOnly = isCitationOnly(source ?? {});
+
+  const documentForExport = async (): Promise<string> => {
+    const response = await fetch(`/api/sources/${sourceId}/export`, { credentials: "include" });
+    if (!response.ok) throw new Error("Could not prepare the export");
+    const payload = await response.json() as {
+      citationOnly: boolean;
+      title: string;
+      author: string | null;
+      dateLabel: string | null;
+      provenance: string | null;
+      rightsStatement: string | null;
+      externalUrl: string | null;
+    };
+    if (payload.citationOnly || citationOnly) {
+      const lines = [`# ${payload.title}`, ""];
+      if (payload.author) lines.push(`**Author:** ${payload.author}`);
+      if (payload.dateLabel) lines.push(`**Date:** ${payload.dateLabel}`);
+      if (payload.provenance) { lines.push(""); lines.push(`**Provenance:** ${payload.provenance}`); }
+      if (payload.rightsStatement) { lines.push(""); lines.push(payload.rightsStatement); }
+      if (payload.externalUrl) { lines.push(""); lines.push(payload.externalUrl); }
+      lines.push("");
+      lines.push("This record is citation and link only. The full text is not exported.");
+      return lines.join("\n");
+    }
+    return buildMarkdown();
+  };
+
+  const handleDownloadMarkdown = async () => {
+    try {
+      const md = await documentForExport();
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(source?.title ?? "translation").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast({ title: citationOnly ? "Citation downloaded" : "Downloaded", description: citationOnly ? "Full text is not included." : "Markdown file saved." });
+    } catch {
+      toast({ title: "Export failed", description: "The export could not be prepared.", variant: "destructive" });
+    }
   };
 
   const handleCopyMarkdown = async () => {
     try {
-      await navigator.clipboard.writeText(buildMarkdown());
-      toast({ title: "Copied", description: "Markdown copied to clipboard." });
+      await navigator.clipboard.writeText(await documentForExport());
+      toast({ title: "Copied", description: citationOnly ? "Citation copied. Full text is not included." : "Markdown copied to clipboard." });
     } catch {
       toast({ title: "Copy failed", description: "Your browser blocked clipboard access.", variant: "destructive" });
     }
   };
 
-  const handlePrintPdf = () => {
-    const win = window.open("", "_blank");
-    if (!win) { toast({ title: "Popup blocked", description: "Allow popups to use print-to-PDF.", variant: "destructive" }); return; }
-    win.document.write(buildPrintDocument(source?.title ?? "Translation", buildMarkdown()));
-    win.document.close();
-    setTimeout(() => win.print(), 300);
+  const handlePrintPdf = async () => {
+    try {
+      const md = await documentForExport();
+      const win = window.open("", "_blank");
+      if (!win) { toast({ title: "Popup blocked", description: "Allow popups to use print-to-PDF.", variant: "destructive" }); return; }
+      win.document.write(buildPrintDocument(source?.title ?? "Translation", md));
+      win.document.close();
+      setTimeout(() => win.print(), 300);
+    } catch {
+      toast({ title: "Print failed", description: "The export could not be prepared.", variant: "destructive" });
+    }
   };
 
   // ── Loading / error states ───────────────────────────────────────────────
@@ -469,7 +507,7 @@ export function TranslationWorkspacePage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
-                Export workspace
+                {citationOnly ? "Citation and link only" : "Export workspace"}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDownloadMarkdown} className="gap-2">

@@ -14,6 +14,7 @@ import compCodesRouter from "./comp-codes";
 import roomsRouter from "./rooms";
 import moderationRouter from "./moderation";
 import translationsRouter from "./translations";
+import legalRouter from "./legal";
 
 const router: IRouter = Router();
 
@@ -32,5 +33,6 @@ router.use(compCodesRouter);
 router.use(roomsRouter);
 router.use(moderationRouter);
 router.use(translationsRouter);
+router.use(legalRouter);
 
 export default router;

@@ -1,8 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserCircle, Mail, CreditCard, Shield } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { apiSend } from "@/lib/api";
 import { AccessPanel } from "@/components/access-panel";
 
 const ROLE_LABEL = {
@@ -17,6 +19,33 @@ const ACCESS_LABEL = {
   paid: "Paid access",
   comp: "Comp — full access until revoked",
 } as const;
+
+function LegalPreview() {
+  const pages = useQuery({
+    queryKey: ["legal-pages", "preview"],
+    queryFn: async () => {
+      const result = await apiSend("/api/legal/pages");
+      if (!result.ok) return [];
+      return (result.json as { pages: { slug: string; title: string; preview: boolean }[] }).pages.filter((page) => page.preview);
+    },
+  });
+  if (!pages.data || pages.data.length === 0) return null;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-serif text-xl">Legal drafts</CardTitle>
+        <CardDescription>Administrator preview. These pages are not in the public navigation.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm">
+        {pages.data.map((page) => (
+          <div key={page.slug}>
+            <Link href={`/legal/${page.slug}`} className="underline underline-offset-4">{page.title}</Link>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
 
 export function AccountPage() {
   const { user, loading, logout } = useAuth();
@@ -70,6 +99,7 @@ export function AccountPage() {
             </CardContent>
           </Card>
           <AccessPanel />
+          {user.role === "admin" ? <LegalPreview /> : null}
         </div>
 
         <aside className="space-y-6">

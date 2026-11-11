@@ -10,6 +10,8 @@ import { requireEditor } from "../auth/middleware";
 import { sendValidationError } from "../lib/http";
 import { likeContains, parseListLimit, parseListPage } from "../lib/security";
 import { TRANSLATION_DISCLOSURE } from "@workspace/config";
+import { isCitationOnly } from "@workspace/config/legal";
+import { visibleExcerpt, visibleOriginalText } from "../lib/holding";
 import { publicSourceType } from "../lib/source-type";
 
 const router = Router();
@@ -52,9 +54,9 @@ function formatSource(
     availability: row.availability,
     rightsStatement: row.rightsStatement ?? null,
     description: row.description ?? null,
-    excerpt: row.excerpt ?? null,
+    excerpt: visibleExcerpt(row),
     translationDisclosure: TRANSLATION_DISCLOSURE,
-    originalLanguageText: row.originalLanguageText ?? null,
+    originalLanguageText: visibleOriginalText(row),
     externalUrl: row.externalUrl ?? null,
     tags: row.tags,
     yearApprox: row.yearApprox ?? null,
@@ -194,6 +196,41 @@ router.get("/sources/stats", async (req, res): Promise<void> => {
     byConfidence: byConfidence.map((r) => ({ confidence: r.confidence, count: r.count })),
     byCollection: byCollection.filter((r) => r.collection).map((r) => ({ collection: r.collection!, count: r.count })),
     byAvailability: byAvailability.map((r) => ({ availability: r.availability, count: r.count })),
+  });
+});
+
+router.get("/sources/:id/export", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw ?? "", 10);
+  if (Number.isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  const [row] = await db.select().from(sourcesTable).where(eq(sourcesTable.id, id));
+  if (!row) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  const citationOnly = isCitationOnly(row);
+  const citation = {
+    citationOnly,
+    title: row.title,
+    author: row.author ?? null,
+    dateLabel: row.dateLabel ?? null,
+    provenance: row.provenance,
+    rightsStatement: row.rightsStatement ?? null,
+    externalUrl: row.externalUrl ?? null,
+    availability: row.availability,
+    repositoryAccessStatus: row.repositoryAccessStatus ?? null,
+  };
+  if (citationOnly) {
+    res.json(citation);
+    return;
+  }
+  res.json({
+    ...citation,
+    excerpt: visibleExcerpt(row),
+    originalLanguageText: visibleOriginalText(row),
   });
 });
 

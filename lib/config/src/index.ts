@@ -1,6 +1,6 @@
 /**
  * Public wording for English translations.
- * Wording is pending legal review.
+ * Wording was approved in legal review on Nov 11, 2026.
  * Do not put model or provider names in this sentence or in any public response.
  */
 export const TRANSLATION_DISCLOSURE =
