@@ -202,7 +202,7 @@ Three independent high-confidence sources (Tacitus, Pliny, Josephus core) conver
           sourceId: plinyId,
           role: "supports",
           summary:
-            "Pliny refers to Christians singing a hymn 'to Christ as to a god' (Epistulae X.96, c.112 CE). Independent of Tacitus — different author, different province, different context.",
+            "In the Melmoth translation revised by Bosanquet, Pliny says they addressed a form of prayer to Christ, as to a divinity (Epistulae 10.96, c.112 CE). Independent of Tacitus — different author, different province, different context.",
         },
         ossuaryId && {
           sourceId: ossuaryId,

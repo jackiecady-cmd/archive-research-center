@@ -5,6 +5,9 @@ finding archival sources, exploring collections, and organizing scholarly
 research. This repository is a standalone extraction of the web app, API,
 database schema, and generated API contracts.
 
+Forums, private rooms, and uploads are not cleared to go public until the
+items in [LAUNCH_BLOCKERS.md](LAUNCH_BLOCKERS.md) are done.
+
 ## Requirements
 
 - Node.js 22.13 or newer

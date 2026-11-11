@@ -17,6 +17,7 @@ import { eq, inArray } from "drizzle-orm";
 const REMOVED_SOURCE_TITLES = [
   "Ireland Civil Registration Index — Births 1864–1900 (Connacht Province)",
   "Archdiocese of Quebec — Marriage Registers 1621–1800 (PRDH Index)",
+  "Mishnah Tractate Sanhedrin 43a — Yeshu and His Disciples",
 ];
 
 // ── Collections ───────────────────────────────────────────────────────────────
@@ -75,7 +76,7 @@ const REPOSITORIES = [
     slug: "vatican-apostolic-library",
     institutionType: "Research library and manuscript repository",
     description:
-      "The Vatican Apostolic Library (Biblioteca Apostolica Vaticana) preserves manuscript, archival, printed, numismatic, and visual collections. DigiVatLib provides access to digitized holdings, while the online catalogue also describes material that is not available as digital images.",
+      "The Vatican Apostolic Library (Biblioteca Apostolica Vaticana) preserves manuscript, archival, printed, numismatic, and visual collections. This archive stores catalogue links only. It does not reproduce Vatican images or manuscript text.",
     url: "https://www.vaticanlibrary.va/",
   },
 ];
@@ -116,22 +117,21 @@ const SOURCES = [
     collectionSlug: "greco-roman",
     author: "Flavius Josephus",
     dateLabel: "c. 93–94 CE",
-    language: "English (translation)",
+    language: "English (Whiston, 1737)",
     originalLanguage: "Greek (Koinē)",
-    originalLanguageText:
-      "Γίνεται δὲ κατὰ τοῦτον τὸν χρόνον Ἰησοῦς, σοφὸς ἀνήρ, εἴγε ἄνδρα αὐτὸν λέγειν χρή·\nἦν γὰρ παραδόξων ἔργων ποιητής, διδάσκαλος ἀνθρώπων τῶν ἡδονῇ τἀληθῆ δεχομένων.",
     provenance:
-      "Transmitted through the medieval manuscript tradition of Josephus. Earliest complete MSS date to the 11th century CE. The Greek text was first critically edited by Niese (1892). The passage is preserved in the Codex Ambrosianus and Codex Florentinus.",
+      "Transmitted through the medieval manuscript tradition of Josephus. Earliest complete manuscripts date to the 11th century CE. The English is William Whiston's translation, first published in 1737.",
     confidence: "medium",
     chronology:
       "The authenticity of the passage is disputed: most scholars accept a genuine Josephan core substantially modified by later Christian scribes. The original composition dates to c. 93 CE.",
     availability: "public_domain",
-    rightsStatement: "Greek text in public domain. Loeb Classical Library translation © Harvard University Press.",
+    rightsStatement:
+      "English: William Whiston, The Works of Flavius Josephus (London: W. Bowyer, 1737), Antiquities 18.3.3. Public domain. Checked against the Whiston text at Perseus. No Loeb text is included.",
     description:
       "The Testimonium Flavianum is the most cited non-Christian reference to Jesus in antiquity. Its current form almost certainly reflects Christian interpolation, but philological and patristic evidence supports the existence of an authentic Josephan core.",
     excerpt:
-      "About this time there lived Jesus, a wise man — if indeed one ought to call him a man. For he was a performer of astonishing deeds, a teacher of people who receive the truth with pleasure.",
-    externalUrl: "https://www.perseus.tufts.edu/hopper/text?doc=J.+AJ+18.3.3",
+      "Now there was about this time Jesus, a wise man, if it be lawful to call him a man; for he was a doer of wonderful works, a teacher of such men as receive the truth with pleasure.",
+    externalUrl: "https://www.perseus.tufts.edu/hopper/text?doc=Perseus:text:1999.01.0146:book=18:whiston%20chapter=3:whiston%20section=3",
     tags: ["Jesus", "Josephus", "Jewish antiquities", "historical Jesus", "1st century"],
     yearApprox: 93,
   },
@@ -141,22 +141,21 @@ const SOURCES = [
     collectionSlug: "greco-roman",
     author: "Publius Cornelius Tacitus",
     dateLabel: "c. 116–117 CE",
-    language: "English (translation)",
+    language: "English (Church and Brodribb, 1876)",
     originalLanguage: "Latin",
-    originalLanguageText:
-      "Ergo abolendo rumori Nero subdidit reos et quaesitissimis poenis adfecit,\nquos per flagitia invisos vulgus Christianos appellabat.\nAuctor nominis eius Christus Tiberio imperitante per procuratorem Pontium Pilatum supplicio adfectus erat.",
     provenance:
-      "Transmitted in a single manuscript, the Codex Mediceus II (11th century), held at the Biblioteca Medicea Laurenziana, Florence. First printed edition by Beroaldo (1515). Critical text by Fisher (Oxford, 1906).",
+      "Transmitted in a single manuscript, the Codex Mediceus II (11th century), held at the Biblioteca Medicea Laurenziana, Florence. The English is the 1876 Church and Brodribb translation.",
     confidence: "high",
     chronology:
       "Written c. 116–117 CE, approximately 80 years after the described events (64 CE fire of Rome). Tacitus is writing as a senator with access to official records.",
     availability: "public_domain",
-    rightsStatement: "Latin text in public domain.",
+    rightsStatement:
+      "English: Alfred John Church and William Jackson Brodribb, The Annals of Tacitus (London: Macmillan, 1876), book 15, chapter 44. Public domain. Checked against Wikisource.",
     description:
       "Tacitus reports Nero's persecution of Christians as scapegoats for the fire of Rome in 64 CE, providing one of the earliest independent references to the execution of Christ under Pontius Pilate. The passage is universally accepted as authentic.",
     excerpt:
-      "The founder of this sect, Christus, was executed in the reign of Tiberius by the procurator Pontius Pilate; and the pernicious superstition, suppressed for a time, broke out again — not only through Judaea, but through the city of Rome as well.",
-    externalUrl: "https://www.perseus.tufts.edu/hopper/text?doc=Tac.+Ann.+15.44",
+      "Christus, from whom the name had its origin, suffered the extreme penalty during the reign of Tiberius at the hands of one of our procurators, Pontius Pilatus, and a most mischievous superstition, thus checked for the moment, again broke out not only in Judaea, the first source of the evil, but even in Rome, where all things hideous and shameful from every part of the world find their centre and become popular.",
+    externalUrl: "https://en.wikisource.org/wiki/The_Annals_(Tacitus)/Book_15#44",
     tags: ["Tacitus", "Roman history", "Christians", "Nero", "Pilate", "1st century"],
     yearApprox: 116,
   },
@@ -166,22 +165,21 @@ const SOURCES = [
     collectionSlug: "greco-roman",
     author: "Gaius Caecilius Secundus (Pliny the Younger)",
     dateLabel: "c. 112 CE",
-    language: "English (translation)",
+    language: "English (Melmoth, revised by Bosanquet)",
     originalLanguage: "Latin",
-    originalLanguageText:
-      "Sollemne est mihi, domine, omnia de quibus dubito ad te referre.\nQuis enim potest melius vel cunctationem meam regere vel ignorantiam instruere?\nCognitioni de Christianis interfui numquam.",
     provenance:
-      "Transmitted in a collection of Pliny's letters. Earliest MSS are 9th–10th century. Critical edition by Mynors (Oxford, 1963).",
+      "Transmitted in a collection of Pliny's letters. The earliest manuscripts are 9th–10th century. The English is William Melmoth's translation as revised by F. C. T. Bosanquet.",
     confidence: "high",
     chronology:
-      "Written c. 112 CE when Pliny was governor of Bithynia-Pontus under Trajan. Contemporary administrative document.",
+      "Written c. 112 CE when Pliny was governor of Bithynia-Pontus under Trajan. Contemporary administrative document. In the standard numbering this is Epistulae 10.96.",
     availability: "public_domain",
-    rightsStatement: "Latin text in public domain.",
+    rightsStatement:
+      "English: William Melmoth, revised by F. C. T. Bosanquet, Letters of Pliny, the letter to Trajan on Christians. Public domain. Checked against Project Gutenberg eBook 2811. The 1915 Loeb revision by W. M. L. Hutchinson is not used.",
     description:
       "Pliny writes to Emperor Trajan asking for guidance on how to deal with Christians in his province, describing their practices and the challenge of enforcement. One of the earliest external descriptions of Christian worship.",
     excerpt:
-      "They asserted that the sum of their guilt or error had been this: they were accustomed to meet on a fixed day before dawn and sing responsively a hymn to Christ as to a god.",
-    externalUrl: "https://www.perseus.tufts.edu/hopper/text?doc=Plin.+Ep.+10.96",
+      "They affirmed the whole of their guilt, or their error, was, that they met on a stated day before it was light, and addressed a form of prayer to Christ, as to a divinity, binding themselves by a solemn oath, not for the purposes of any wicked design, but never to commit any fraud, theft, or adultery.",
+    externalUrl: "https://www.gutenberg.org/ebooks/2811",
     tags: ["Pliny", "Roman administration", "early Christianity", "2nd century"],
     yearApprox: 112,
   },
@@ -194,23 +192,21 @@ const SOURCES = [
     collectionSlug: "ecclesiastical",
     author: "Unknown (Qumran scribal community)",
     dateLabel: "c. 125–100 BCE",
-    language: "English (translation)",
-    originalLanguage: "Hebrew (Biblical)",
-    originalLanguageText:
-      "מִי הֶאֱמִין לִשְׁמֻעָתֵנוּ וּזְרוֹעַ יְהוָה עַל מִי נִגְלָתָה׃\nוַיַּעַל כַּיּוֹנֵק לְפָנָיו וְכַשֹּׁרֶשׁ מֵאֶרֶץ צִיָּה לֹא תֹאַר לוֹ וְלֹא הָדָר וְנִרְאֵהוּ וְלֹא מַרְאֶה וְנֶחְמְדֵהוּ׃",
+    language: "English (JPS 1917, Masoretic text)",
+    originalLanguage: "Hebrew",
     provenance:
-      "Discovered 1947 in Cave 1, Qumran. Now held at the Shrine of the Book, Israel Museum, Jerusalem. Among the oldest known manuscripts of the Hebrew Bible, predating the Masoretic Text by approximately 1,000 years.",
+      "Discovered 1947 in Cave 1, Qumran. Now held at the Shrine of the Book, Israel Museum, Jerusalem. The English excerpt is not a translation of the scroll.",
     confidence: "high",
     chronology:
-      "Carbon-14 dating places the scroll to c. 335–107 BCE (95% confidence). Palaeographic analysis suggests c. 125–100 BCE for composition of this copy.",
-    availability: "open_access",
+      "Carbon-14 dating places the scroll to c. 335–107 BCE (95% confidence). Palaeographic analysis suggests c. 125–100 BCE for this copy. Editorial note: 1QIsa^a differs in places from the later Masoretic text. Those variant readings are not printed here. The English is the 1917 Jewish Publication Society translation of the Masoretic text of Isaiah 53:1–2.",
+    availability: "public_domain",
     rightsStatement:
-      "Images digitized by the Israel Antiquities Authority and freely available via the Leon Levy Dead Sea Scrolls Digital Library.",
+      "English: The Holy Scriptures According to the Masoretic Text (Philadelphia: The Jewish Publication Society of America, 1917), Isaiah 53:1–2. Public domain. This record does not reproduce images of 1QIsa^a.",
     description:
-      "The Great Isaiah Scroll (1QIsa-a) is the best-preserved of all Dead Sea Scrolls and the only complete book of the Hebrew Bible recovered from Qumran. Isaiah 53, the so-called 'Suffering Servant' passage, is central to both Jewish and Christian interpretive traditions.",
+      "The Great Isaiah Scroll (1QIsa-a) is the best-preserved of the Dead Sea Scrolls and the only complete book of the Hebrew Bible recovered from Qumran. The English supplied here translates the Masoretic text, not the scroll.",
     excerpt:
-      "Who has believed our report? And to whom has the arm of the LORD been revealed? For he grew up before him like a young plant, and like a root out of dry ground — no form or majesty that we should look at him.",
-    externalUrl: "https://www.deadseascrolls.org.il/explore-the-archive/manuscript/1Q8-1",
+      "Who would have believed our report? And to whom hath the arm of the Lord been revealed? For he shot up right forth as a sapling, and as a root out of a dry ground.",
+    externalUrl: "https://en.wikisource.org/wiki/Bible_(Jewish_Publication_Society_1917)/Isaiah",
     tags: ["Dead Sea Scrolls", "Isaiah", "Hebrew Bible", "Qumran", "Old Testament"],
     yearApprox: -100,
   },
@@ -241,28 +237,27 @@ const SOURCES = [
     yearApprox: 350,
   },
   {
-    title: "Mishnah Tractate Sanhedrin 43a — Yeshu and His Disciples",
+    title: "Babylonian Talmud (Bavli), Sanhedrin 43a",
     sourceType: "primary",
     collectionSlug: "ecclesiastical",
-    author: "Tannaitic tradition (compiled by Rabbi Judah haNasi)",
-    dateLabel: "Compiled c. 200 CE; underlying traditions earlier",
-    language: "English (translation)",
-    originalLanguage: "Hebrew (Mishnaic)",
-    originalLanguageText:
-      "בְּעֶרֶב פֶּסַח תָּלוּ אֶת יֵשׁוּ. וְהַכָּרוֹז יוֹצֵא לְפָנָיו אַרְבָּעִים יוֹם: יֵשׁוּ יוֹצֵא לִיסָּקֵל עַל שֶׁכִּשֵּׁף וְהֵסִית וְהִדִּיחַ אֶת יִשְׂרָאֵל.",
+    author: "Babylonian Talmud (Bavli)",
+    dateLabel: "Bavli redaction, c. 500 CE",
+    language: "No English included",
+    originalLanguage: "Hebrew and Aramaic",
     provenance:
-      "The Mishnah was compiled c. 200 CE in Roman Palestine under Rabbi Judah haNasi. This tractate survives in the Babylonian Talmud redaction (c. 500 CE). The uncensored text is preserved in the Munich Talmud MS (Codex Hebraicus 95, Bayerische Staatsbibliothek).",
+      "This folio belongs to the Babylonian Talmud, not the Mishnah. The usual printed Bavli is the Romm edition (Vilna, 1880–1886). The notice about Yeshu is missing or censored in many printed copies, including printed editions in that tradition, and is preserved in Munich, Bayerische Staatsbibliothek, Cod. hebr. 95.",
     confidence: "medium",
     chronology:
-      "The reference to 'Yeshu' is debated: some scholars identify it with Jesus of Nazareth; others argue for a different figure. The censored status of this passage in printed Talmud editions complicates its transmission history.",
-    availability: "open_access",
-    rightsStatement: "Text in public domain. Digitized Munich Talmud available via the Bayerische Staatsbibliothek.",
+      "Scholars dispute whether 'Yeshu' in this folio is Jesus of Nazareth. No English is printed here.",
+    availability: "public_domain",
+    rightsStatement:
+      "No English rendering is included. A named public-domain English translation that contains this passage was not verified, so the earlier English was removed. Hebrew and Aramaic of the folio are not transcribed here.",
     description:
-      "A Talmudic passage referring to the execution of 'Yeshu' on the eve of Passover for sorcery and leading Israel astray. The identification with Jesus of Nazareth is contested among scholars. Significant for the study of early Jewish responses to Christianity.",
+      "A catalogue reference to Bavli Sanhedrin 43a. The record does not quote the folio in English or in Hebrew.",
     excerpt:
-      "On the eve of Passover, Yeshu was hanged. The herald went before him for forty days: 'Yeshu is going to be stoned for practising sorcery, inciting and leading Israel astray.'",
-    tags: ["Talmud", "Mishnah", "Yeshu", "Jewish sources", "historical Jesus"],
-    yearApprox: 200,
+      "No English rendering is included.",
+    tags: ["Talmud", "Bavli", "Sanhedrin", "Yeshu", "Jewish sources"],
+    yearApprox: 500,
     externalUrl: null,
   },
   {
@@ -470,23 +465,23 @@ const VATICAN_SOURCES = [
     language: "Latin",
     originalLanguage: "Latin",
     provenance:
-      "Biblioteca Apostolica Vaticana, shelfmark Vat.lat.1. The DigiVatLib catalogue identifies the manuscript as “Biblia. Latino sec. XV med.” and provides a full BROWSE image viewer: https://digi.vatlib.it/mss/detail/Vat.lat.1",
+      "Biblioteca Apostolica Vaticana, shelfmark Vat.lat.1. Catalogue link only: https://digi.vatlib.it/mss/detail/Vat.lat.1. This record embeds no images and quotes no manuscript text.",
     confidence: "high",
     chronology:
       "The repository catalogue dates the codex to the middle of the fifteenth century.",
-    availability: "open_access",
+    availability: "restricted",
     rightsStatement:
-      "DigiVatLib permits free image use for personal study. Rights must be requested from the Vatican Apostolic Library for use in printed or online publications.",
+      "Not cleared for publication. A written license from the Vatican Apostolic Library rights office is required before any images or texts from this manuscript are reused. This archive holds a link-only catalogue reference.",
     description:
-      "A fifteenth-century Latin Bible held by the Vatican Apostolic Library, with the codex available for page-by-page study in DigiVatLib.",
+      "A link-only catalogue reference to a fifteenth-century Latin Bible at the Vatican Apostolic Library. No images and no manuscript text are included.",
     excerpt:
-      "Repository record and digitized manuscript images for Vatican Latin shelfmark 1.",
-    externalUrl: "https://digi.vatlib.it/view/MSS_Vat.lat.1",
-    tags: ["Vatican Library", "DigiVatLib", "Latin Bible", "manuscript", "digitized"],
+      "Catalogue reference only. No images and no manuscript text are included.",
+    externalUrl: "https://digi.vatlib.it/mss/detail/Vat.lat.1",
+    tags: ["Vatican Library", "catalogue", "Latin Bible", "manuscript"],
     yearApprox: 1450,
-    repositoryAccessStatus: "digitized",
+    repositoryAccessStatus: "catalog_only",
     repositoryAccessNote:
-      "Digitized manuscript: DigiVatLib provides a page-image viewer. Publication and online reproduction require separate permission from the repository.",
+      "Link-only catalogue reference. Images and text are not embedded. A written Vatican Library license is required before reuse.",
   },
   {
     title: "Vat.lat.15321 — Vatican Latin Manuscript Catalogue Record",
@@ -494,20 +489,20 @@ const VATICAN_SOURCES = [
     author: "Unidentified",
     language: "Latin manuscript collection",
     provenance:
-      "Biblioteca Apostolica Vaticana, shelfmark Vat.lat.15321. The official OPAC record provides catalogue metadata and bibliographic references but no DigiVatLib BROWSE link: https://opac.vatlib.it/mss/detail/Vat.lat.15321",
+      "Biblioteca Apostolica Vaticana, shelfmark Vat.lat.15321. Catalogue link only: https://opac.vatlib.it/mss/detail/Vat.lat.15321. This record embeds no images and quotes no manuscript text.",
     confidence: "high",
     availability: "restricted",
     rightsStatement:
-      "Catalogue metadata is publicly viewable. Consultation or reproduction of the manuscript itself is subject to Vatican Library admission, access, and reproduction policies.",
+      "Not cleared for publication. A written license from the Vatican Apostolic Library rights office is required before any images or texts from this manuscript are reused. This archive holds a link-only catalogue reference.",
     description:
-      "An official Vatican Library manuscript catalogue record represented here to distinguish discoverable metadata from digitized-manuscript access.",
+      "A link-only catalogue reference to Vatican Latin manuscript 15321. No images and no manuscript text are included.",
     excerpt:
-      "Catalogue description and bibliography are available online; no manuscript image viewer is linked from the official record.",
+      "Catalogue reference only. No images and no manuscript text are included.",
     externalUrl: "https://opac.vatlib.it/mss/detail/Vat.lat.15321",
     tags: ["Vatican Library", "OPAC", "catalogue record", "manuscript"],
     repositoryAccessStatus: "catalog_only",
     repositoryAccessNote:
-      "Catalog-only record: bibliographic metadata is online, but no DigiVatLib manuscript image viewer is linked from the official OPAC record.",
+      "Link-only catalogue reference. Images and text are not embedded. A written Vatican Library license is required before reuse.",
   },
   {
     title: "Barb.lat.4351 — Temporarily Unavailable Manuscript",
@@ -515,20 +510,20 @@ const VATICAN_SOURCES = [
     author: "Unidentified",
     language: "Latin manuscript collection",
     provenance:
-      "Biblioteca Apostolica Vaticana, shelfmark Barb.lat.4351. The shelfmark appears in the Library’s official “Temporarily unavailable Manuscripts” list, which covers material unavailable for conservation, restoration, or display reasons: https://www.vaticanlibrary.va/en/information-for-readers/unavailable-manuscripts.html",
+      "Biblioteca Apostolica Vaticana, shelfmark Barb.lat.4351. The shelfmark appears on the Library’s list of manuscripts temporarily unavailable for consultation: https://www.vaticanlibrary.va/en/information-for-readers/unavailable-manuscripts.html. This record embeds no images and quotes no manuscript text.",
     confidence: "high",
     availability: "restricted",
     rightsStatement:
-      "The manuscript is listed by the Vatican Library as temporarily unavailable for consultation. Any later consultation or reproduction remains subject to repository policies.",
+      "Not cleared for publication. A written license from the Vatican Apostolic Library rights office is required before any images or texts from this manuscript are reused. This archive holds a link-only catalogue reference.",
     description:
-      "A Barberini Latin manuscript record used to show that an identified holding may be unavailable for consultation even when catalogue discovery remains possible.",
+      "A link-only catalogue reference to Barberini Latin manuscript 4351. The Library lists the shelfmark as temporarily unavailable for consultation. No images and no manuscript text are included.",
     excerpt:
-      "Officially listed as temporarily unavailable for consultation by the Vatican Apostolic Library.",
+      "Catalogue reference only. No images and no manuscript text are included.",
     externalUrl: "https://opac.vatlib.it/mss/detail/Barb.lat.4351",
-    tags: ["Vatican Library", "Barberini Latin", "manuscript", "temporarily unavailable"],
-    repositoryAccessStatus: "restricted",
+    tags: ["Vatican Library", "Barberini Latin", "manuscript", "catalogue"],
+    repositoryAccessStatus: "catalog_only",
     repositoryAccessNote:
-      "Restricted access: the Vatican Library currently lists this shelfmark as temporarily unavailable for conservation, restoration, or display reasons.",
+      "Link-only catalogue reference. Images and text are not embedded. A written Vatican Library license is required before reuse.",
   },
 ];
 
