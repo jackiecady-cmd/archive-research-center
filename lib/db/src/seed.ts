@@ -3,8 +3,6 @@
  * Run via: pnpm --filter @workspace/db run seed
  *
  * Research-integrity rules preserved throughout:
- *  - FamilySearch sources are labeled as LDS-funded
- *  - No DNAGenics sources (those belong to the Genealogy/DNA page only)
  *  - Confidence grades reflect actual evidentiary basis
  */
 
@@ -35,7 +33,7 @@ const COLLECTIONS = [
   {
     name: "Parish & Civil Records",
     slug: "parish-civil",
-    subject: "Genealogy and demographic history",
+    subject: "Demographic history",
     description:
       "Baptismal registers, marriage bonds, burial records, and civil registration indexes from Europe and the Americas.",
     iconLabel: "🗂",
@@ -291,18 +289,18 @@ const SOURCES = [
     dateLabel: "1653–1700",
     language: "English",
     provenance:
-      "Original registers held at London Metropolitan Archives, reference P69/BRI2/A/001/MS06540. Digitized in partnership with FindMyPast. Microfilm held at the Society of Genealogists, London.",
+      "Original registers held at London Metropolitan Archives, reference P69/BRI2/A/001/MS06540.",
     confidence: "high",
     chronology:
-      "Civil registration did not begin in England until 1837. These parish registers are the primary genealogical source for 17th-century London Nonconformist and Anglican records.",
+      "Civil registration did not begin in England until 1837. These parish registers are a primary record of 17th-century London Nonconformist and Anglican baptisms, marriages, and burials.",
     availability: "restricted",
     rightsStatement:
-      "Original records © London Metropolitan Archives. Digital images available via FindMyPast subscription. Physical access by appointment.",
+      "Original records © London Metropolitan Archives. Digital images require a subscription. Physical access by appointment.",
     description:
       "Baptismal, marriage, and burial registers for one of the oldest City of London parishes. The registers span the Interregnum, Restoration, and early modern periods and include records of printers, journalists, and Fleet Street tradespeople.",
     excerpt:
       "Entries record forenames, surnames, dates of baptism, and father's name (or mother's name for illegitimate births), sometimes with occupation. Handwriting varies by incumbent.",
-    tags: ["London", "baptismal register", "parish records", "17th century", "genealogy"],
+    tags: ["London", "baptismal register", "parish records", "17th century"],
     yearApprox: 1676,
   },
   {
@@ -313,17 +311,17 @@ const SOURCES = [
     dateLabel: "1864–1900",
     language: "English",
     provenance:
-      "Original registers held at the General Register Office, Roscommon, Ireland. Index digitized and hosted by IrishGenealogy.ie (a government service). FamilySearch also holds microfilm copies.",
+      "Original registers held at the General Register Office, Roscommon, Ireland. The birth index is published by the Irish civil registration service.",
     confidence: "high",
     availability: "open_access",
     rightsStatement:
-      "Crown copyright expired. Index freely searchable at IrishGenealogy.ie. Note: FamilySearch (operated by The Church of Jesus Christ of Latter-day Saints) has digitized complementary microfilm holdings.",
+      "Crown copyright expired. The index is freely searchable through the Irish civil registration service.",
     description:
-      "Civil registration of births in Ireland began 1 January 1864. These indexes cover Connacht province (counties Galway, Mayo, Roscommon, Sligo, Leitrim) and are among the most complete sources for post-Famine Irish genealogy.\n\n⚠ FamilySearch note: FamilySearch is funded by The Church of Jesus Christ of Latter-day Saints (LDS/Mormon). The collaborative family tree on FamilySearch.org is user-editable and may contain unsourced claims. Verify all information against primary register images.",
+      "Civil registration of births in Ireland began 1 January 1864. These indexes cover Connacht province (counties Galway, Mayo, Roscommon, Sligo, Leitrim) and are among the most complete sources for post-Famine Irish vital records.",
     excerpt:
       "Index entries include: surname, forenames, district, year, and General Register Office reference number. Full register images (mother's maiden name, father's occupation, address) are accessible via the linked record.",
-    externalUrl: "https://www.irishgenealogy.ie",
-    tags: ["Ireland", "civil registration", "births", "Connacht", "genealogy", "FamilySearch"],
+    externalUrl: "https://www.gov.ie/en/department-of-social-protection/organisation-information/the-general-register-office-gro/",
+    tags: ["Ireland", "civil registration", "births", "Connacht"],
     yearApprox: 1880,
   },
   {
@@ -341,11 +339,11 @@ const SOURCES = [
     rightsStatement:
       "PRDH database accessible via subscription at prdh-igd.com. BAnQ digital images free for out-of-copyright records.",
     description:
-      "The most comprehensive genealogical database for French Canada, covering approximately 700,000 individuals across 200 years of colonial and early provincial Quebec. Marriage acts are the most genealogically complete document type, naming both parents of bride and groom.",
+      "An index of French-Canadian marriage acts covering approximately 700,000 individuals across 200 years of colonial and early provincial Quebec. Marriage acts name both parents of the bride and groom.",
     excerpt:
       "Marriage acts in Quebec typically record: date and parish, full names of bride and groom, names and residences of four parents, and names of witnesses with their relationship to the parties.",
     externalUrl: "https://www.prdh-igd.com",
-    tags: ["Quebec", "French Canada", "marriage records", "Catholic", "New France", "genealogy"],
+    tags: ["Quebec", "French Canada", "marriage records", "Catholic", "New France"],
     yearApprox: 1710,
   },
 
@@ -359,17 +357,17 @@ const SOURCES = [
     dateLabel: "June 1880",
     language: "English",
     provenance:
-      "Original schedules held at the National Archives and Records Administration (NARA), Record Group 29. Microfilm publication T9. Digitized and indexed by Ancestry.com and FamilySearch.\n\n⚠ FamilySearch note: FamilySearch is funded by The Church of Jesus Christ of Latter-day Saints (LDS/Mormon). Index transcriptions may contain errors; always verify against original microfilm images.",
+      "Original schedules held at the National Archives and Records Administration (NARA), Record Group 29. Microfilm publication T9.",
     confidence: "high",
     availability: "public_domain",
     rightsStatement:
-      "Original government records in the public domain. Database compilation rights held by Ancestry.com and FamilySearch respectively.",
+      "Original government records in the public domain.",
     description:
-      "The 1880 U.S. Federal Census is the first to record the relationship of each household member to the head of household, making it a critical genealogical resource. It also records birthplaces of parents, enabling one-step immigrant identification. Full index freely available on FamilySearch.",
+      "The 1880 U.S. Federal Census is the first to record the relationship of each household member to the head of household. It also records birthplaces of parents, which helps identify immigrant households.",
     excerpt:
       "Schedule fields: name, relationship to head, sex, race, age, marital status, occupation, birthplace, father's birthplace, mother's birthplace. Disability and illness columns also recorded.",
-    externalUrl: "https://1880census.familysearch.org",
-    tags: ["US Census", "1880", "genealogy", "immigration", "household records"],
+    externalUrl: "https://www.archives.gov/research/census",
+    tags: ["US Census", "1880", "immigration", "household records"],
     yearApprox: 1880,
   },
   {
@@ -380,17 +378,17 @@ const SOURCES = [
     dateLabel: "2 April 1911",
     language: "English",
     provenance:
-      "Original schedules held at The National Archives, Kew, Record Series RG14. Digitized by FindMyPast in partnership with The National Archives. Available online from 2009 (100-year closure rule).",
+      "Original schedules held at The National Archives, Kew, Record Series RG14. Available online from 2009 (100-year closure rule).",
     confidence: "high",
     availability: "restricted",
     rightsStatement:
-      "Crown copyright expired for 1911 records. Digital images and transcription © FindMyPast / The National Archives. Subscription required for full image access.",
+      "Crown copyright expired for 1911 records. Digital images and transcription are held with The National Archives. A subscription may be required for full image access.",
     description:
       "The 1911 Census is uniquely valuable because householders completed their own returns in their own handwriting, rather than enumerators copying entries. It is also the first to record the number of years married, children born alive, and children still living — critical data for reconstructing family structure.",
     excerpt:
       "Schedule includes: name, relationship, age, sex, occupation, birthplace, nationality, infirmity. Married women's fertility question adds: years married, children born alive, children still living.",
-    externalUrl: "https://www.findmypast.co.uk/1911census",
-    tags: ["England", "Wales", "census 1911", "genealogy", "household records"],
+    externalUrl: "https://www.nationalarchives.gov.uk/",
+    tags: ["England", "Wales", "census 1911", "household records"],
     yearApprox: 1911,
   },
   {
@@ -402,17 +400,17 @@ const SOURCES = [
     language: "English (index); Swedish (originals)",
     originalLanguage: "Swedish",
     provenance:
-      "Original records held by Swedish regional archives (landsarkiv). Digitized by the Swedish Church and hosted on Arkiv Digital and SVAR (Swedish Archive Image Bank). FamilySearch holds microfilm copies.\n\n⚠ FamilySearch note: FamilySearch is funded by The Church of Jesus Christ of Latter-day Saints (LDS/Mormon). Use official Swedish archive sources to verify.",
+      "Original records held by Swedish regional archives (landsarkiv). Digitized by the Swedish Church and hosted on Arkiv Digital and SVAR (Swedish Archive Image Bank).",
     confidence: "high",
     availability: "restricted",
     rightsStatement:
       "Original records public domain. Digital access via Arkiv Digital subscription or SVAR. Some records freely available via Demografiska databasen (DDB).",
     description:
-      "The Swedish household examination records are among the most comprehensive pre-modern population registers in the world. Clergy visited every household annually, recording literacy levels and religious knowledge alongside demographic data. They form the backbone of Swedish genealogical research.",
+      "The Swedish household examination records are among the most comprehensive pre-modern population registers in the world. Clergy visited every household annually, recording literacy levels and religious knowledge alongside demographic data. They are a foundational source for Swedish demographic research.",
     excerpt:
       "Entries record household by household: head of household, spouse, children, servants; ages; birthplaces; literacy rating; dates of communion; and notations on moves in and out of the parish.",
     externalUrl: "https://www.arkivdigital.net",
-    tags: ["Sweden", "household examination", "Lutheran", "genealogy", "Scandinavian records"],
+    tags: ["Sweden", "household examination", "Lutheran", "Scandinavian records"],
     yearApprox: 1850,
   },
 

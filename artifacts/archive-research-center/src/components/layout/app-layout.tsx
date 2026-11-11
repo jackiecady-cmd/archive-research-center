@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   Book, Library, Users, UserCircle, Search, FileText,
-  FlaskConical, Languages, GitBranch, Menu, X,
+  FlaskConical, Languages, Menu, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
@@ -16,7 +16,6 @@ const NAV_ITEMS = [
   { label: "Research Concierge", href: "/concierge",  icon: UserCircle, section: "community" },
   { label: "Research Commons",   href: "/commons",    icon: Users,      section: "community" },
   { label: "Translation Center", href: "/translation",icon: Languages,  section: "community" },
-  { label: "Genealogy",          href: "/genealogy",  icon: GitBranch,  section: "community" },
   { label: "Account & Membership", href: "/account",  icon: UserCircle, section: "account" },
 ];
 

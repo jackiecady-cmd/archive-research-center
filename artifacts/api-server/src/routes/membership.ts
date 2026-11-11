@@ -25,7 +25,6 @@ const PLANS = [
     features: [
       "Everything in Researcher",
       "Unlimited Research Projects",
-      "Genealogy & DNA pathway",
       "Priority Research Concierge",
       "Translation Center (annotate)",
       "Early access to new collections",
@@ -55,7 +54,6 @@ const PLANS = [
     features: [
       "Everything in Researcher",
       "Unlimited Research Projects",
-      "Genealogy & DNA pathway",
       "Priority Research Concierge",
       "Translation Center (annotate)",
       "Early access to new collections",

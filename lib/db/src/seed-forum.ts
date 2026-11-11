@@ -155,66 +155,7 @@ Gregory Doudna's *4Q Pesher Nahum* study (2002) raised this concern explicitly. 
     t2Replies
   );
 
-  // ── Thread 3: FamilySearch methodology ───────────────────────────────────
-  const t3 = await findOrCreateThread(
-    "FamilySearch indexes vs. original images: when is the index enough?",
-    `## Practical methodology question
-
-For those doing Irish and British genealogy: when working with the Ireland Civil Registration Index or the England & Wales censuses available on FamilySearch, at what point is the index alone sufficient vs. requiring the original register image?
-
-My workflow has been:
-1. Use index for initial triage / finding candidate records
-2. Always pull original image before recording any finding as confirmed
-
-But this is slow and sometimes the original images are poor quality or missing. I'm wondering whether there are cases where the index is reliable enough to record as a confirmed finding.
-
-Relevant archive records:
-- [Ireland Civil Registration Index — Births 1864–1900](/sources/20)
-- [England & Wales Census 1911](/sources/23)`,
-    "methodology",
-    "Janet O'Brien",
-    ["genealogy", "familysearch", "ireland", "methodology", "census"]
-  );
-
-  const t3Replies = await db
-    .select()
-    .from(forumRepliesTable)
-    .where(eq(forumRepliesTable.threadId, t3.id));
-
-  await addReply(
-    t3.id,
-    `The index-vs-image question is really a question about where transcription errors are likely to occur. For the Ireland Civil Registration index, the main failure modes are:
-
-1. **Name variants** — Irish names were anglicized inconsistently. "Siobhán" might be indexed as Joan, Johanna, or Jean depending on the registrar's discretion.
-2. **Townland vs. county-level reporting** — early GRO registers sometimes recorded the barony or electoral division, and indexers occasionally misread these.
-3. **Date errors** — quarter-year registration dates are frequently misread in indexes.
-
-My rule of thumb: index alone is sufficient for *eliminating* candidates, but never for *confirming* a record. Even a perfect-looking match can flip when you see the original — I have had cases where the index showed a birth in Galway and the original showed Galway City, not the county, with a different registration district entirely.`,
-    "David Reinholt",
-    t3Replies
-  );
-
-  await addReply(
-    t3.id,
-    `I would add that FamilySearch indexes are crowd-sourced transcriptions of varying quality. The Ireland 1901 and 1911 Census indexes are generally very good (high volunteer review rate), but the pre-1900 civil registration indexes are patchier. For those, I treat the index as a finding aid only — never a citable source.
-
-The 1911 England & Wales Census is actually one of the more reliable FamilySearch indexes because the original returns were filled in by the householder (not an enumerator), so there is less transcription-chain uncertainty. But you still want the image for exact age, birthplace county, and occupation details that sometimes get truncated in the index fields.
-
-One practical tip: the original 1911 returns for England are available in full at The National Archives (Kew) digitized collection. Cross-checking between FamilySearch and TNAonline is good practice for any important finding.`,
-    "Janet O'Brien",
-    t3Replies
-  );
-
-  await addReply(
-    t3.id,
-    `Agreed with the above. I would frame this as an evidence classification problem. The Genealogical Proof Standard requires "reasonably exhaustive search" — which typically means original records, not just indexes. If you record an index entry as a confirmed finding, you are implicitly asserting that the index accurately represents the original, which is an additional claim that requires its own support.
-
-The practical exception: when the original image is demonstrably missing or destroyed (common for pre-1922 Irish records post-Four Courts fire), a contemporaneous transcription or index entry may be the best available evidence. In that case, document the limitation explicitly.`,
-    "Prof. Michael Torres",
-    t3Replies
-  );
-
-  // ── Thread 4: James Ossuary — authenticity debate ─────────────────────────
+  // ── Thread 3: James Ossuary — authenticity debate ─────────────────────────
   const t4 = await findOrCreateThread(
     "The James Ossuary inscription: what does the current state of scholarship say?",
     `## A contested source

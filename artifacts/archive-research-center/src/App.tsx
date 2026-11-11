@@ -22,7 +22,6 @@ import { CommonsPage } from "@/pages/commons";
 import { ThreadDetailPage } from "@/pages/thread-detail";
 import { TranslationPage } from "@/pages/translation";
 import { TranslationWorkspacePage } from "@/pages/translation-workspace";
-import { GenealogyPage } from "@/pages/genealogy";
 import { AccountPage } from "@/pages/account";
 import { MembershipPage } from "@/pages/membership";
 
@@ -54,7 +53,6 @@ function Router() {
           <Route path="/commons/:id" component={ThreadDetailPage} />
           <Route path="/translation" component={TranslationPage} />
           <Route path="/translation/:sourceId" component={TranslationWorkspacePage} />
-          <Route path="/genealogy" component={GenealogyPage} />
           <Route path="/account" component={AccountPage} />
           <Route path="/membership" component={MembershipPage} />
           <Route component={NotFound} />

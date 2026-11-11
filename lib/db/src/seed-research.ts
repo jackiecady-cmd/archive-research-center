@@ -3,7 +3,7 @@
  * Run via: pnpm --filter @workspace/db run seed:research
  *
  * Creates:
- *  - 2 research projects with saved sources and notes
+ *  - 1 research project with saved sources and notes
  *  - 3 claim cards with evidence items referencing seeded sources
  *
  * Requires the main source seed to have run first (pnpm --filter @workspace/db run seed).
@@ -59,9 +59,6 @@ async function seed() {
     deadSeaId,
     codexId,
     ossuaryId,
-    irelandId,
-    census1880Id,
-    census1911Id,
   ] = await Promise.all([
     findSourceByTitle("Tacitus, Annals XV.44 — Nero and the Christians"),
     findSourceByTitle("Josephus, Antiquities of the Jews XVIII.3.3 — Testimonium Flavianum"),
@@ -70,9 +67,6 @@ async function seed() {
     findSourceByTitle("Dead Sea Scrolls — Isaiah Scroll (1QIsa-a), Isaiah 53"),
     findSourceByTitle("Codex Sinaiticus — New Testament (Matthew 5:3–12, Beatitudes)"),
     findSourceByTitle("Ossuary Inscription of James, Son of Joseph, Brother of Jesus"),
-    findSourceByTitle("Ireland Civil Registration Index — Births 1864–1900 (Connacht Province)"),
-    findSourceByTitle("United States Federal Census 1880 — Full Population Schedule"),
-    findSourceByTitle("England & Wales Census 1911 — Individual Household Returns"),
   ]);
 
   // ── Project 1: Historical Jesus Source Analysis ──────────────────────────
@@ -136,71 +130,6 @@ Three independent high-confidence sources (Tacitus, Pliny, Josephus core) conver
     const alreadyHas = existing.some((n) => n.title === note.title);
     if (!alreadyHas) {
       await db.insert(notesTable).values({ projectId: p1.id, ...note });
-      console.log(`    ✔ Note: ${note.title}`);
-    } else {
-      console.log(`    – Note already exists: ${note.title}`);
-    }
-  }
-
-  // ── Project 2: Burke Family Genealogy 1850–1920 ──────────────────────────
-
-  const p2 = await findOrCreateProject(
-    "Burke Family Genealogy 1850–1920",
-    "Tracing the Burke family line from County Galway, Ireland through emigration to the United States and England. Covers civil registration records, census schedules, and passenger manifests across three jurisdictions.",
-    "genealogist"
-  );
-  console.log(`  ${p2.title.includes("already") ? "–" : "✔"} Project: ${p2.title}`);
-
-  const p2Sources = [irelandId, census1880Id, census1911Id].filter(Boolean) as number[];
-  for (const sourceId of p2Sources) {
-    const already = await db.select().from(savedSourcesTable).where(eq(savedSourcesTable.projectId, p2.id));
-    const alreadyHas = already.some((r) => r.sourceId === sourceId);
-    if (!alreadyHas) {
-      await db.insert(savedSourcesTable).values({ projectId: p2.id, sourceId });
-      console.log(`    ✔ Saved source ${sourceId} → project ${p2.id}`);
-    } else {
-      console.log(`    – Source ${sourceId} already saved`);
-    }
-  }
-
-  const p2Notes = [
-    {
-      title: "Search strategy: Ireland Civil Registration Index",
-      content: `## Galway searches
-
-Working hypothesis: the Burke line emigrated from County Galway between 1870 and 1890, most likely post-Famine secondary wave.
-
-**Search terms used:**
-- Surname: Burke (and variants: Bourke)
-- District: Galway, Tuam, Loughrea
-- Year range: 1864–1885
-
-**Next step:** Cross-check any birth index matches against the PRDH Quebec records to rule out Canada emigration route before assuming direct Ireland → USA trajectory.
-
-⚠️ FamilySearch index used for initial triage — verify all matches against original GRO register images at IrishGenealogy.ie.`,
-    },
-    {
-      title: "1880 US Census hit — possible match",
-      content: `## Potential match: Patrick Burke, Cook County, Illinois
-
-Found in 1880 Federal Census index: Patrick Burke, age 32, born Ireland, wife Mary (née Conneely), born Ireland, children Thomas (8) and Bridget (6) born Illinois.
-
-If Patrick Burke was born c.1848 in Ireland, this is consistent with the pre-Famine birth window and a likely emigration date of late 1860s or early 1870s.
-
-**Action items:**
-1. Pull full household image from Ancestry.com (T9 microfilm)
-2. Check Patrick's birthplace county if recorded
-3. Search New York passenger manifests 1865–1875 for Patrick Burke + Mary Conneely
-
-**Confidence: Low** — surname is common. Need corroborating detail before linking to the Galway Burke line.`,
-    },
-  ];
-
-  for (const note of p2Notes) {
-    const existing = await db.select().from(notesTable).where(eq(notesTable.projectId, p2.id));
-    const alreadyHas = existing.some((n) => n.title === note.title);
-    if (!alreadyHas) {
-      await db.insert(notesTable).values({ projectId: p2.id, ...note });
       console.log(`    ✔ Note: ${note.title}`);
     } else {
       console.log(`    – Note already exists: ${note.title}`);
