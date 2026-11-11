@@ -30,7 +30,8 @@ database schema, and generated API contracts.
    pnpm db:seed
    ```
 
-   `pnpm db:push` adds required account and ownership columns. If it fails
+   `pnpm db:push` adds account, entitlement, forum, comp-code, and private-room
+   columns. If it fails
    because an older database already has research, forum, or translation rows,
    recreate that development database (or delete those rows) and push again.
    Catalog tables for sources, collections, and repositories do not need an
@@ -58,10 +59,53 @@ ADMIN_EMAIL=you@example.com pnpm db:set-role
 pnpm db:set-role -- you@example.com editor
 ```
 
-Roles are `user`, `editor`, and `admin`. Editors and administrators can change
-catalog records. Research projects, notes, saved sources, claim cards,
-evidence, and translation workspaces are visible only to their owner (an
-administrator can also read and change research items).
+Roles are `user`, `editor`, `moderator`, and `admin`. Editors and administrators
+can change catalog records. Moderators can hide posts, lock discussions, and
+suspend forum access. Administrators can do that too, and they are the only
+people who can read the moderation audit log. Research projects, notes, saved
+sources, claim cards, evidence, and translation workspaces are visible only to
+their owner (an administrator can also read and change research items). Forum
+threads and replies follow the same rule: another researcher cannot edit or
+delete them.
+
+## Access
+
+Sign-in is required for the research concierge, including both concierge API
+routes. Signed-out visitors see a prompt to sign in.
+
+Public forum categories (Sources, Methodology, Translation, Interpretation,
+Chronology) can be read without an account. Posting and replying require a
+signed-in account that is not suspended. Hidden posts are omitted from those
+public reads. Private rooms never appear there.
+
+Access is an entitlement: `free`, `paid`, or `comp`. A future billing provider
+should set `users.billing_entitlement` to `paid` or `free`. Comp is a separate
+grant and overrides billing, so a comp account has every paid privilege until
+an administrator revokes the code that granted it. Codes are single-use by
+default, stored as a SHA-256 hash (mix in `COMP_CODE_PEPPER` in production),
+and redemption is rate-limited. Only an administrator, plus at most one
+designated delegate, can create codes. Revoking a code removes the comp grant.
+If the account also has paid billing, it falls back to paid. Otherwise it
+returns to free.
+
+`POST /api/membership/subscribe` does not grant access. Billing is not
+connected.
+
+Private rooms are invitation-only. Non-members receive "not found" rather than
+the room's contents. The owner creates and revokes invitations and removes
+members. Invitations can expire. Moderators and administrators can open a room
+for safety (hide it, lock it, hide a post) even when they are not members.
+
+Open question: whether a signed-in researcher without paid or comp access may
+be invited. The default is members-only. Set
+`PRIVATE_ROOMS_ALLOW_FREE_GUESTS=1` to allow free accounts to join. Staff
+roles can still enter for moderation.
+
+Moderator accounts that are bots should be service accounts. An administrator
+creates one from the account page (or `POST /api/moderation/service-accounts`).
+The response includes a bearer token once. Send it as `Authorization: Bearer`
+from the server. That path does not create a browser session, and the service
+account cannot sign in through the password form.
 
 ## Checks and builds
 

@@ -22,7 +22,7 @@ import { CommonsPage } from "@/pages/commons";
 import { ThreadDetailPage } from "@/pages/thread-detail";
 import { TranslationPage } from "@/pages/translation";
 import { TranslationWorkspacePage } from "@/pages/translation-workspace";
-import { GenealogyPage } from "@/pages/genealogy";
+import { RoomsPage } from "@/pages/rooms";
 import { AccountPage } from "@/pages/account";
 import { MembershipPage } from "@/pages/membership";
 import { SignInPage } from "@/pages/sign-in";
@@ -52,16 +52,20 @@ function Router() {
           <Route path="/projects/:id">{() => <RequireAuth><ProjectDetailPage /></RequireAuth>}</Route>
           <Route path="/claim-cards">{() => <RequireAuth><ClaimCardsPage /></RequireAuth>}</Route>
           <Route path="/claim-cards/:id">{() => <RequireAuth><ClaimCardDetailPage /></RequireAuth>}</Route>
-          <Route path="/concierge" component={ConciergePage} />
-          <Route path="/commons">{() => <RequireAuth><CommonsPage /></RequireAuth>}</Route>
-          <Route path="/commons/:id">{() => <RequireAuth><ThreadDetailPage /></RequireAuth>}</Route>
+          <Route path="/concierge">{() => (
+            <RequireAuth message="The research concierge is available once you sign in. Your pathway stays with your account.">
+              <ConciergePage />
+            </RequireAuth>
+          )}</Route>
+          <Route path="/commons" component={CommonsPage} />
+          <Route path="/commons/:id" component={ThreadDetailPage} />
+          <Route path="/rooms">{() => <RequireAuth><RoomsPage /></RequireAuth>}</Route>
           <Route path="/translation">{() => <RequireAuth><TranslationPage /></RequireAuth>}</Route>
           <Route path="/translation/:sourceId">{() => <RequireAuth><TranslationWorkspacePage /></RequireAuth>}</Route>
           <Route path="/sign-in" component={SignInPage} />
           <Route path="/sign-up" component={SignUpPage} />
-          <Route path="/genealogy" component={GenealogyPage} />
           <Route path="/account" component={AccountPage} />
-          <Route path="/membership" component={MembershipPage} />
+          <Route path="/membership">{() => <RequireAuth><MembershipPage /></RequireAuth>}</Route>
           <Route component={NotFound} />
         </Switch>
       </RoutedErrorBoundary>

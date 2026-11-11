@@ -8,6 +8,7 @@
 
 export interface ForumThread {
   id: number;
+  userId: number;
   title: string;
   content?: string;
   category: string;
@@ -15,6 +16,8 @@ export interface ForumThread {
   replyCount: number;
   /** @maxItems 50 */
   tags?: string[];
+  locked: boolean;
+  hidden: boolean;
   createdAt: string;
   lastActivityAt?: string;
 }

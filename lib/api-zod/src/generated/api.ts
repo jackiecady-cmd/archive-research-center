@@ -36,7 +36,8 @@ export const RegisterResponse = zod.object({
   "id": zod.int(),
   "email": zod.email(),
   "displayName": zod.string(),
-  "role": zod.enum(['user', 'editor', 'admin'])
+  "role": zod.enum(['user', 'editor', 'moderator', 'admin']),
+  "entitlement": zod.enum(['free', 'paid', 'comp'])
 })
 
 
@@ -56,7 +57,8 @@ export const LoginResponse = zod.object({
   "id": zod.int(),
   "email": zod.email(),
   "displayName": zod.string(),
-  "role": zod.enum(['user', 'editor', 'admin'])
+  "role": zod.enum(['user', 'editor', 'moderator', 'admin']),
+  "entitlement": zod.enum(['free', 'paid', 'comp'])
 })
 
 
@@ -73,7 +75,8 @@ export const GetCurrentUserResponse = zod.object({
   "id": zod.int(),
   "email": zod.email(),
   "displayName": zod.string(),
-  "role": zod.enum(['user', 'editor', 'admin'])
+  "role": zod.enum(['user', 'editor', 'moderator', 'admin']),
+  "entitlement": zod.enum(['free', 'paid', 'comp'])
 })
 
 
@@ -1111,6 +1114,13 @@ export const DeleteEvidenceResponse = zod.void()
 
 
 /**
+ * @summary List public discussion categories
+ */
+export const ListForumCategoriesResponseItem = zod.string()
+export const ListForumCategoriesResponse = zod.array(ListForumCategoriesResponseItem)
+
+
+/**
  * @summary List forum threads
  */
 export const ListForumThreadsQueryParams = zod.object({
@@ -1124,12 +1134,15 @@ export const listForumThreadsResponseTagsMax = 50;
 
 export const ListForumThreadsResponseItem = zod.object({
   "id": zod.number(),
+  "userId": zod.number(),
   "title": zod.string(),
   "content": zod.string().optional(),
   "category": zod.string(),
   "authorName": zod.string(),
   "replyCount": zod.number(),
   "tags": zod.array(zod.string()).max(listForumThreadsResponseTagsMax).optional(),
+  "locked": zod.boolean(),
+  "hidden": zod.boolean(),
   "createdAt": zod.string(),
   "lastActivityAt": zod.string().optional()
 })
@@ -1146,7 +1159,7 @@ export const createForumThreadBodyTagsMax = 50;
 export const CreateForumThreadBody = zod.object({
   "title": zod.string(),
   "content": zod.string(),
-  "category": zod.string(),
+  "category": zod.enum(['Sources', 'Methodology', 'Translation', 'Interpretation', 'Chronology']),
   "tags": zod.array(zod.string()).max(createForumThreadBodyTagsMax).optional()
 })
 
@@ -1156,12 +1169,15 @@ export const createForumThreadResponseTagsMax = 50;
 
 export const CreateForumThreadResponse = zod.object({
   "id": zod.number(),
+  "userId": zod.number(),
   "title": zod.string(),
   "content": zod.string().optional(),
   "category": zod.string(),
   "authorName": zod.string(),
   "replyCount": zod.number(),
   "tags": zod.array(zod.string()).max(createForumThreadResponseTagsMax).optional(),
+  "locked": zod.boolean(),
+  "hidden": zod.boolean(),
   "createdAt": zod.string(),
   "lastActivityAt": zod.string().optional()
 })
@@ -1181,20 +1197,25 @@ export const getForumThreadResponseThreadTagsMax = 50;
 export const GetForumThreadResponse = zod.object({
   "thread": zod.object({
   "id": zod.number(),
+  "userId": zod.number(),
   "title": zod.string(),
   "content": zod.string().optional(),
   "category": zod.string(),
   "authorName": zod.string(),
   "replyCount": zod.number(),
   "tags": zod.array(zod.string()).max(getForumThreadResponseThreadTagsMax).optional(),
+  "locked": zod.boolean(),
+  "hidden": zod.boolean(),
   "createdAt": zod.string(),
   "lastActivityAt": zod.string().optional()
 }),
   "replies": zod.array(zod.object({
   "id": zod.number(),
+  "userId": zod.number(),
   "threadId": zod.number(),
   "content": zod.string(),
   "authorName": zod.string(),
+  "hidden": zod.boolean(),
   "createdAt": zod.string()
 }))
 })
@@ -1213,9 +1234,11 @@ export const CreateForumReplyBody = zod.object({
 
 export const CreateForumReplyResponse = zod.object({
   "id": zod.number(),
+  "userId": zod.number(),
   "threadId": zod.number(),
   "content": zod.string(),
   "authorName": zod.string(),
+  "hidden": zod.boolean(),
   "createdAt": zod.string()
 })
 
@@ -1230,20 +1253,25 @@ export const getRecentForumActivityResponseRecentThreadsItemTagsMax = 50;
 export const GetRecentForumActivityResponse = zod.object({
   "recentThreads": zod.array(zod.object({
   "id": zod.number(),
+  "userId": zod.number(),
   "title": zod.string(),
   "content": zod.string().optional(),
   "category": zod.string(),
   "authorName": zod.string(),
   "replyCount": zod.number(),
   "tags": zod.array(zod.string()).max(getRecentForumActivityResponseRecentThreadsItemTagsMax).optional(),
+  "locked": zod.boolean(),
+  "hidden": zod.boolean(),
   "createdAt": zod.string(),
   "lastActivityAt": zod.string().optional()
 })),
   "recentReplies": zod.array(zod.object({
   "id": zod.number(),
+  "userId": zod.number(),
   "threadId": zod.number(),
   "content": zod.string(),
   "authorName": zod.string(),
+  "hidden": zod.boolean(),
   "createdAt": zod.string()
 }))
 })

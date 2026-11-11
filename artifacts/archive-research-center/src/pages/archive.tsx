@@ -29,10 +29,6 @@ const ARCHIVE_SUGGESTIONS: Record<string, { headline: string; detail: string }> 
     headline: "Filter by Primary Source for material evidence",
     detail: "Excavation reports and material culture data are marked Primary Source — start there for first-hand archaeological records.",
   },
-  genealogist: {
-    headline: "Looking for genealogical sources?",
-    detail: "The archive holds demographic and chronological records relevant to family research. Check the Tags on each source for genealogy-relevant content.",
-  },
   occult_researcher: {
     headline: "Relevant to your profile: Hekate Anthology",
     detail: "Primary and secondary sources on Hekate and related traditions, graded to the same evidence standards as all other collections.",

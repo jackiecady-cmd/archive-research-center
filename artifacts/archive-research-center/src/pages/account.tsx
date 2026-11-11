@@ -3,11 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { UserCircle, Mail, CreditCard, Shield } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { AccessPanel } from "@/components/access-panel";
 
 const ROLE_LABEL = {
   user: "Researcher",
   editor: "Editor",
+  moderator: "Moderator",
   admin: "Administrator",
+} as const;
+
+const ACCESS_LABEL = {
+  free: "Free — signed-in research",
+  paid: "Paid access",
+  comp: "Comp — full access until revoked",
 } as const;
 
 export function AccountPage() {
@@ -55,8 +63,13 @@ export function AccountPage() {
                 <div className="text-muted-foreground flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> Email</div>
                 <div className="font-medium">{user.email}</div>
               </div>
+              <div>
+                <div className="text-muted-foreground">Access</div>
+                <div className="font-medium">{ACCESS_LABEL[user.entitlement]}</div>
+              </div>
             </CardContent>
           </Card>
+          <AccessPanel />
         </div>
 
         <aside className="space-y-6">
@@ -66,7 +79,9 @@ export function AccountPage() {
               <CardDescription>{ROLE_LABEL[user.role]}</CardDescription>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
-              {user.role === "user"
+              {user.role === "moderator"
+                ? "You can hide posts, lock discussions, and suspend forum access. Each action is written to the administrator audit log."
+                : user.role === "user"
                 ? "Catalog edits are limited to editor and administrator accounts."
                 : "You can edit catalog records, including original-language text, provenance, and rights."}
             </CardContent>

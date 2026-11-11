@@ -48,9 +48,15 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(csrfProtection);
-const authWriteLimit = createRateLimiter({ windowMs: 60_000, max: 10 });
+// Production keeps a tight cap on sign-in attempts. Tests register many accounts in one process.
+const authWriteLimit = createRateLimiter({
+  windowMs: 60_000,
+  max: process.env.NODE_ENV === "test" ? 100 : 10,
+});
 app.use("/api/auth/login", authWriteLimit);
 app.use("/api/auth/register", authWriteLimit);
+app.use("/api/comp-codes/redeem", createRateLimiter({ windowMs: 15 * 60_000, max: 20 }));
+app.use("/api/rooms/join", createRateLimiter({ windowMs: 15 * 60_000, max: 20 }));
 app.use("/api", createRateLimiter({ windowMs: 60_000, max: 120 }));
 app.use("/api", router);
 app.use(errorHandler);

@@ -7,7 +7,8 @@ export type AuthUser = {
   id: number;
   email: string;
   displayName: string;
-  role: "user" | "editor" | "admin";
+  role: "user" | "editor" | "moderator" | "admin";
+  entitlement: "free" | "paid" | "comp";
 };
 
 type AuthContextValue = {
@@ -69,7 +70,7 @@ export function canEditCatalog(user: AuthUser | null): boolean {
   return user?.role === "editor" || user?.role === "admin";
 }
 
-export function RequireAuth({ children }: { children: ReactNode }) {
+export function RequireAuth({ children, message }: { children: ReactNode; message?: string }) {
   const { user, loading } = useAuth();
   if (loading) {
     return <div className="max-w-3xl mx-auto px-6 py-16 text-sm text-muted-foreground">Loading account…</div>;
@@ -79,7 +80,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
       <div className="max-w-lg mx-auto px-6 py-16 space-y-4 text-center">
         <h1 className="font-serif text-3xl">Sign in to continue</h1>
         <p className="text-sm text-muted-foreground">
-          Research projects, notes, claim cards, the commons, and translation workspaces belong to your account.
+          {message ?? "Research projects, notes, claim cards, and translation workspaces belong to your account."}
         </p>
         <div className="flex justify-center gap-3">
           <Button asChild><Link href="/sign-in">Sign in</Link></Button>

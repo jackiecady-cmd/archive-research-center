@@ -5,6 +5,7 @@
  * Archive & Research Center API
  * OpenAPI spec version: 0.1.0
  */
+import type { AuthUserEntitlement } from './authUserEntitlement';
 import type { AuthUserRole } from './authUserRole';
 
 export interface AuthUser {
@@ -12,4 +13,5 @@ export interface AuthUser {
   email: string;
   displayName: string;
   role: AuthUserRole;
+  entitlement: AuthUserEntitlement;
 }

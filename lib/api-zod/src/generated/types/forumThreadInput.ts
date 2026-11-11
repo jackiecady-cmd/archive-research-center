@@ -5,11 +5,12 @@
  * Archive & Research Center API
  * OpenAPI spec version: 0.1.0
  */
+import type { ForumThreadInputCategory } from './forumThreadInputCategory';
 
 export interface ForumThreadInput {
   title: string;
   content: string;
-  category: string;
+  category: ForumThreadInputCategory;
   /** @maxItems 50 */
   tags?: string[];
 }

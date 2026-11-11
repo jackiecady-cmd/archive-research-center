@@ -729,9 +729,25 @@ paths:
 
   # ─── Forum ────────────────────────────────────────────────────────────────────
 
+  /forum/categories:
+    get:
+      operationId: listForumCategories
+      security: []
+      tags: [forum]
+      summary: List public discussion categories
+      responses:
+        "200":
+          description: Categories any signed-in member may post in
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string }
+
   /forum/threads:
     get:
       operationId: listForumThreads
+      security: []
       tags: [forum]
       summary: List forum threads
       parameters:
@@ -771,6 +787,7 @@ paths:
   /forum/threads/{id}:
     get:
       operationId: getForumThread
+      security: []
       tags: [forum]
       summary: Get a forum thread with its replies
       parameters:
@@ -813,6 +830,7 @@ paths:
   /forum/recent:
     get:
       operationId: getRecentForumActivity
+      security: []
       tags: [forum]
       summary: Recent forum activity feed
       responses:
@@ -891,7 +909,6 @@ paths:
   /concierge/paths:
     get:
       operationId: listConciergePaths
-      security: []
       tags: [concierge]
       summary: List concierge researcher paths
       responses:
@@ -1028,14 +1045,17 @@ components:
   schemas:
     AuthUser:
       type: object
-      required: [id, email, displayName, role]
+      required: [id, email, displayName, role, entitlement]
       properties:
         id: { type: integer }
         email: { type: string, format: email }
         displayName: { type: string }
         role:
           type: string
-          enum: [user, editor, admin]
+          enum: [user, editor, moderator, admin]
+        entitlement:
+          type: string
+          enum: [free, paid, comp]
     RegisterInput:
       type: object
       required: [email, password, displayName]
@@ -1434,15 +1454,18 @@ components:
 
     ForumThread:
       type: object
-      required: [id, title, category, authorName, replyCount, createdAt]
+      required: [id, userId, title, category, authorName, replyCount, locked, hidden, createdAt]
       properties:
         id: { type: number }
+        userId: { type: number }
         title: { type: string }
         content: { type: string }
         category: { type: string }
         authorName: { type: string }
         replyCount: { type: number }
         tags: { type: array, maxItems: 50, items: { type: string } }
+        locked: { type: boolean }
+        hidden: { type: boolean }
         createdAt: { type: string }
         lastActivityAt: { type: string }
 
@@ -1452,17 +1475,21 @@ components:
       properties:
         title: { type: string }
         content: { type: string }
-        category: { type: string }
+        category:
+          type: string
+          enum: [Sources, Methodology, Translation, Interpretation, Chronology]
         tags: { type: array, maxItems: 50, items: { type: string } }
 
     ForumReply:
       type: object
-      required: [id, threadId, content, authorName, createdAt]
+      required: [id, userId, threadId, content, authorName, hidden, createdAt]
       properties:
         id: { type: number }
+        userId: { type: number }
         threadId: { type: number }
         content: { type: string }
         authorName: { type: string }
+        hidden: { type: boolean }
         createdAt: { type: string }
 
     ForumReplyInput:

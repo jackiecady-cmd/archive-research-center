@@ -11,7 +11,17 @@ export type AuthUserRole = typeof AuthUserRole[keyof typeof AuthUserRole];
 export const AuthUserRole = {
   user: 'user',
   editor: 'editor',
+  moderator: 'moderator',
   admin: 'admin',
+} as const;
+
+export type AuthUserEntitlement = typeof AuthUserEntitlement[keyof typeof AuthUserEntitlement];
+
+
+export const AuthUserEntitlement = {
+  free: 'free',
+  paid: 'paid',
+  comp: 'comp',
 } as const;
 
 export interface AuthUser {
@@ -19,6 +29,7 @@ export interface AuthUser {
   email: string;
   displayName: string;
   role: AuthUserRole;
+  entitlement: AuthUserEntitlement;
 }
 
 export interface RegisterInput {
@@ -462,6 +473,7 @@ export interface EvidenceInput {
 
 export interface ForumThread {
   id: number;
+  userId: number;
   title: string;
   content?: string;
   category: string;
@@ -469,23 +481,38 @@ export interface ForumThread {
   replyCount: number;
   /** @maxItems 50 */
   tags?: string[];
+  locked: boolean;
+  hidden: boolean;
   createdAt: string;
   lastActivityAt?: string;
 }
 
+export type ForumThreadInputCategory = typeof ForumThreadInputCategory[keyof typeof ForumThreadInputCategory];
+
+
+export const ForumThreadInputCategory = {
+  Sources: 'Sources',
+  Methodology: 'Methodology',
+  Translation: 'Translation',
+  Interpretation: 'Interpretation',
+  Chronology: 'Chronology',
+} as const;
+
 export interface ForumThreadInput {
   title: string;
   content: string;
-  category: string;
+  category: ForumThreadInputCategory;
   /** @maxItems 50 */
   tags?: string[];
 }
 
 export interface ForumReply {
   id: number;
+  userId: number;
   threadId: number;
   content: string;
   authorName: string;
+  hidden: boolean;
   createdAt: string;
 }
 

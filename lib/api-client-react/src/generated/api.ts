@@ -2777,6 +2777,80 @@ export const useDeleteEvidence = <TError = ErrorType<unknown>,
       return useMutation(getDeleteEvidenceMutationOptions(options));
     }
 
+export const getListForumCategoriesUrl = () => {
+
+
+
+
+  return `/api/forum/categories`
+}
+
+/**
+ * @summary List public discussion categories
+ */
+export const listForumCategories = async ( options?: Parameters<typeof customFetch>[1]): Promise<string[]> => {
+
+  return customFetch<string[]>(getListForumCategoriesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListForumCategoriesQueryKey = () => {
+    return [
+    `/api/forum/categories`
+    ] as const;
+    }
+
+
+export const getListForumCategoriesQueryOptions = <TData = Awaited<ReturnType<typeof listForumCategories>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listForumCategories>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListForumCategoriesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listForumCategories>>> = ({ signal }) => listForumCategories({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listForumCategories>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListForumCategoriesQueryResult = NonNullable<Awaited<ReturnType<typeof listForumCategories>>>
+export type ListForumCategoriesQueryError = ErrorType<unknown>
+
+
+/** @summary List public discussion categories */
+export function useListForumCategories<TData = Awaited<ReturnType<typeof listForumCategories>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listForumCategories>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListForumCategoriesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListForumThreadsUrl = (params?: ListForumThreadsParams,) => {
   const normalizedParams = new URLSearchParams();
 

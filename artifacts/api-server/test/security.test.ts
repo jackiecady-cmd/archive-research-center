@@ -22,8 +22,13 @@ test("public catalog reads stay open and private routes do not", () => {
   assert.equal(isPublicRead("GET", "/repositories/vatican-apostolic-library"), true);
   assert.equal(isPublicRead("GET", "/membership/plans"), true);
   assert.equal(isPublicRead("GET", "/membership/current"), false);
-  assert.equal(isPublicRead("GET", "/concierge/paths"), true);
+  assert.equal(isPublicRead("GET", "/concierge/paths"), false);
   assert.equal(isPublicRead("POST", "/concierge/recommend"), false);
+  assert.equal(isPublicRead("GET", "/forum/threads"), true);
+  assert.equal(isPublicRead("GET", "/forum/threads/4"), true);
+  assert.equal(isPublicRead("GET", "/forum/categories"), true);
+  assert.equal(isPublicRead("POST", "/forum/threads"), false);
+  assert.equal(isPublicRead("GET", "/rooms"), false);
   assert.equal(isPublicRead("GET", "/research-projects"), false);
   assert.equal(apiPath({ originalUrl: "/api/sources/stats?q=a_b" } as Request), "/sources/stats");
 });

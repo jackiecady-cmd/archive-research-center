@@ -7,7 +7,9 @@ const PUBLIC_GET = new Set([
   "/collections",
   "/repositories",
   "/membership/plans",
-  "/concierge/paths",
+  "/forum/threads",
+  "/forum/recent",
+  "/forum/categories",
 ]);
 
 const AUTH_PATHS = new Set([
@@ -42,6 +44,7 @@ export function isPublicRead(method: string, path: string): boolean {
   if (/^\/sources\/\d+$/.test(path)) return true;
   if (/^\/collections\/[^/]+$/.test(path)) return true;
   if (/^\/repositories\/[^/]+$/.test(path)) return true;
+  if (/^\/forum\/threads\/\d+$/.test(path)) return true;
   return false;
 }
 

@@ -26,7 +26,7 @@ if (!email) {
 }
 
 if (!isRole(role)) {
-  console.error("Role must be one of: user, editor, admin.");
+  console.error("Role must be one of: user, editor, moderator, admin.");
   process.exit(1);
 }
 

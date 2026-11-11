@@ -1,4 +1,4 @@
-import { useListForumThreads, useCreateForumThread, useGetRecentForumActivity } from "@workspace/api-client-react";
+import { useListForumThreads, useCreateForumThread, useGetRecentForumActivity, ForumThreadInputCategory } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,6 +10,15 @@ import { MessageSquare, Users, Clock, Search, Plus } from "lucide-react";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
+
+const PUBLIC_CATEGORIES = [
+  ForumThreadInputCategory.Sources,
+  ForumThreadInputCategory.Methodology,
+  ForumThreadInputCategory.Translation,
+  ForumThreadInputCategory.Interpretation,
+  ForumThreadInputCategory.Chronology,
+];
 
 export function CommonsPage() {
   const [q, setQ] = useState("");
@@ -25,7 +34,7 @@ export function CommonsPage() {
               <Users className="h-8 w-8 text-primary" /> Research Commons
             </h1>
             <p className="text-muted-foreground mt-2 text-sm max-w-xl">
-              A space for scholars to debate interpretations, ask for translation help, and discuss historical methods.
+              Public discussions can be read without an account. Posting requires a signed-in researcher. Private rooms are separate and invitation-only.
             </p>
           </div>
           <CreateThreadDialog />
@@ -57,6 +66,7 @@ export function CommonsPage() {
                   <div className="space-y-1.5 flex-1">
                     <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
                       <span className="bg-secondary px-2 py-0.5 rounded">{thread.category}</span>
+                      {thread.locked ? <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded">Locked</span> : null}
                     </div>
                     <h3 className="text-lg font-serif font-medium">
                       <Link href={`/commons/${thread.id}`} className="hover:text-primary hover:underline transition-colors">
@@ -103,10 +113,11 @@ export function CommonsPage() {
 }
 
 function CreateThreadDialog() {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [category, setCategory] = useState("Methodology");
+  const [category, setCategory] = useState<ForumThreadInputCategory>(ForumThreadInputCategory.Methodology);
   
   const create = useCreateForumThread();
   const queryClient = useQueryClient();
@@ -127,6 +138,10 @@ function CreateThreadDialog() {
     });
   };
 
+  if (!user) {
+    return <Button asChild><Link href="/sign-in">Sign in to start a discussion</Link></Button>;
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -143,7 +158,13 @@ function CreateThreadDialog() {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Category</label>
-            <Input value={category} onChange={e => setCategory(e.target.value)} placeholder="e.g. Translation, Methodology, Sources" />
+            <select
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+              value={category}
+              onChange={(event) => setCategory(event.target.value as ForumThreadInputCategory)}
+            >
+              {PUBLIC_CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Initial Post</label>

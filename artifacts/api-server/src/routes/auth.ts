@@ -6,8 +6,8 @@ import { sendValidationError } from "../lib/http";
 import {
   createSession,
   destroySession,
+  loadSessionUserById,
   toPublicUser,
-  type SessionUser,
 } from "../auth/session";
 
 const router = Router();
@@ -22,21 +22,6 @@ function dummyHash(): Promise<string> {
 function roleForNewAccount(email: string): UserRole {
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   return adminEmail && email === adminEmail ? "admin" : "user";
-}
-
-function asSessionUser(row: {
-  id: number;
-  email: string;
-  displayName: string;
-  role: string;
-}): SessionUser | null {
-  if (row.role !== "user" && row.role !== "editor" && row.role !== "admin") return null;
-  return {
-    id: row.id,
-    email: row.email,
-    displayName: row.displayName,
-    role: row.role,
-  };
 }
 
 router.post("/auth/register", async (req, res): Promise<void> => {
@@ -66,7 +51,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
       displayName: usersTable.displayName,
       role: usersTable.role,
     });
-  const user = asSessionUser(created);
+  const user = await loadSessionUserById(created.id);
   if (!user) {
     res.status(500).json({ error: "Internal server error" });
     return;
@@ -86,17 +71,15 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   const passwordOk = row
     ? await verifyPassword(row.passwordHash, parsed.data.password)
     : await verifyPassword(await dummyHash(), parsed.data.password).then(() => false);
-  if (!row || !passwordOk) {
+  if (!row || !passwordOk || row.accountKind === "service") {
     res.status(401).json({ error: "Invalid email or password" });
     return;
   }
-  let role = row.role;
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   if (adminEmail && row.email === adminEmail && row.role !== "admin") {
     await db.update(usersTable).set({ role: "admin" }).where(eq(usersTable.id, row.id));
-    role = "admin";
   }
-  const user = asSessionUser({ ...row, role });
+  const user = await loadSessionUserById(row.id);
   if (!user) {
     res.status(401).json({ error: "Invalid email or password" });
     return;

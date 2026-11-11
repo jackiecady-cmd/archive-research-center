@@ -8,21 +8,47 @@ import { ArrowLeft, UserCircle2, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
+import { apiError, apiSend } from "@/lib/api";
 
 export function ThreadDetailPage() {
   const params = useParams();
   const id = parseInt(params.id || "0", 10);
   const { data, isLoading } = useGetForumThread(id, { query: { enabled: !!id, queryKey: getGetForumThreadQueryKey(id) } });
 
+  const { user } = useAuth();
   const createReply = useCreateForumReply();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [replyContent, setReplyContent] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
 
   if (isLoading) return <div className="max-w-4xl mx-auto p-12"><Skeleton className="h-64 w-full" /></div>;
   if (!data) return <div className="p-12 text-center">Thread not found.</div>;
 
   const { thread, replies } = data;
+  const canModerate = user?.role === "moderator" || user?.role === "admin";
+  const ownsThread = user?.id === thread.userId || user?.role === "admin";
+
+  const moderate = async (path: string, body?: Record<string, string>) => {
+    const result = await apiSend(path, { method: "POST", body: body ?? {} });
+    if (!result.ok) {
+      toast({ title: apiError(result.json, "That moderation action failed") });
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: getGetForumThreadQueryKey(id) });
+  };
+
+  const saveThread = async () => {
+    const result = await apiSend(`/api/forum/threads/${thread.id}`, { method: "PATCH", body: { content: draft } });
+    if (!result.ok) {
+      toast({ title: apiError(result.json, "Could not update this discussion") });
+      return;
+    }
+    setEditing(false);
+    await queryClient.invalidateQueries({ queryKey: getGetForumThreadQueryKey(id) });
+  };
 
   const handleReply = () => {
     if (!replyContent.trim()) return;
@@ -50,8 +76,23 @@ export function ThreadDetailPage() {
             <span className="text-[10px] font-bold uppercase tracking-wider bg-secondary px-2 py-1 rounded text-muted-foreground">
               {thread.category}
             </span>
+            {thread.locked ? <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 px-2 py-1 rounded">Locked</span> : null}
           </div>
           <h1 className="text-3xl font-serif">{thread.title}</h1>
+          <div className="flex flex-wrap gap-2">
+            {ownsThread ? (
+              <Button variant="outline" size="sm" onClick={() => { setDraft(thread.content ?? ""); setEditing(true); }}>Edit</Button>
+            ) : null}
+            {canModerate ? (
+              <>
+                <Button variant="outline" size="sm" onClick={() => { void moderate(`/api/moderation/threads/${thread.id}/hide`, { reason: "Removed by a moderator" }); }}>Hide</Button>
+                <Button variant="outline" size="sm" onClick={() => { void moderate(thread.locked ? `/api/moderation/threads/${thread.id}/unlock` : `/api/moderation/threads/${thread.id}/lock`); }}>
+                  {thread.locked ? "Unlock" : "Lock"}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => { void moderate(`/api/moderation/users/${thread.userId}/suspend`, { reason: "Suspended from this discussion" }); }}>Suspend author</Button>
+              </>
+            ) : null}
+          </div>
           
           <div className="flex flex-wrap items-center gap-3 pt-2 text-sm border-b border-border pb-6">
             <div className="flex items-center gap-1.5 font-medium text-primary">
@@ -62,9 +103,19 @@ export function ThreadDetailPage() {
             </span>
           </div>
 
-          <div className="pt-4 prose prose-stone dark:prose-invert max-w-none text-foreground/90 font-serif leading-relaxed">
-            {thread.content?.split('\n').map((para, i) => <p key={i}>{para}</p>)}
-          </div>
+          {editing ? (
+            <div className="space-y-3">
+              <Textarea rows={8} value={draft} onChange={(event) => setDraft(event.target.value)} />
+              <div className="flex gap-2">
+                <Button onClick={() => { void saveThread(); }}>Save</Button>
+                <Button variant="outline" onClick={() => setEditing(false)}>Cancel</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="pt-4 prose prose-stone dark:prose-invert max-w-none text-foreground/90 font-serif leading-relaxed">
+              {thread.content?.split('\n').map((para, i) => <p key={i}>{para}</p>)}
+            </div>
+          )}
         </div>
       </div>
 
@@ -95,6 +146,12 @@ export function ThreadDetailPage() {
         </div>
 
         <div className="bg-secondary/30 border border-border p-6 rounded-xl mt-8">
+          {!user ? (
+            <p className="text-sm"> <Link href="/sign-in" className="underline">Sign in</Link> to reply.</p>
+          ) : thread.locked ? (
+            <p className="text-sm text-muted-foreground">This discussion is locked.</p>
+          ) : (
+          <>
           <h4 className="font-medium mb-4">Write a reply</h4>
           <Textarea 
             rows={5} 
@@ -108,6 +165,8 @@ export function ThreadDetailPage() {
               {createReply.isPending ? "Posting..." : "Post Reply"}
             </Button>
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>

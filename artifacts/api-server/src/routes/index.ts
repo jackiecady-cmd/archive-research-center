@@ -10,6 +10,9 @@ import claimsRouter from "./claims";
 import forumRouter from "./forum";
 import membershipRouter from "./membership";
 import conciergeRouter from "./concierge";
+import compCodesRouter from "./comp-codes";
+import roomsRouter from "./rooms";
+import moderationRouter from "./moderation";
 import translationsRouter from "./translations";
 
 const router: IRouter = Router();
@@ -25,6 +28,9 @@ router.use(claimsRouter);
 router.use(forumRouter);
 router.use(membershipRouter);
 router.use(conciergeRouter);
+router.use(compCodesRouter);
+router.use(roomsRouter);
+router.use(moderationRouter);
 router.use(translationsRouter);
 
 export default router;

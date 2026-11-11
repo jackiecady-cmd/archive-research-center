@@ -8,8 +8,10 @@
 
 export interface ForumReply {
   id: number;
+  userId: number;
   threadId: number;
   content: string;
   authorName: string;
+  hidden: boolean;
   createdAt: string;
 }
