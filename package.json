@@ -1,0 +1,23 @@
+{
+  "name": "archive-research-center",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.26.1",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "pnpm run typecheck:libs && pnpm --filter @workspace/archive-research-center --filter @workspace/api-server run typecheck",
+    "build": "pnpm run typecheck && pnpm --filter @workspace/api-server --filter @workspace/archive-research-center run build",
+    "db:push": "node scripts/run.mjs --filter @workspace/db run push",
+    "db:seed": "node scripts/run.mjs --filter @workspace/db run seed",
+    "db:seed:research": "node scripts/run.mjs --filter @workspace/db run seed:research",
+    "db:seed:forum": "node scripts/run.mjs --filter @workspace/db run seed:forum",
+    "api:codegen": "pnpm --filter @workspace/api-spec run codegen"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}

@@ -1,0 +1,213 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border: var(--primary-border);
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-border: var(--secondary-border);
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted-border: var(--muted-border);
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-border: var(--accent-border);
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-border: var(--destructive-border);
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary-border: var(--sidebar-primary-border);
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent-border: var(--sidebar-accent-border);
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* LIGHT MODE */
+:root {
+  --button-outline: rgba(0, 0, 0, 0.1);
+  --badge-outline: rgba(0, 0, 0, 0.05);
+
+  --opaque-button-border-intensity: -8;
+
+  --elevate-1: rgba(0, 0, 0, 0.03);
+  --elevate-2: rgba(0, 0, 0, 0.08);
+
+  /* Vellum background */
+  --background: 42 21% 97%;
+  /* Iron-gall ink text */
+  --foreground: 40 4% 10%;
+
+  --border: 43 16% 80%;
+  --input: 43 16% 85%;
+  --ring: 144 32% 17%;
+
+  /* White or lighter vellum for cards */
+  --card: 0 0% 100%;
+  --card-foreground: 40 4% 10%;
+  --card-border: 43 16% 85%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 40 4% 10%;
+  --popover-border: 43 16% 85%;
+
+  /* Library Green */
+  --primary: 144 32% 17%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Subtle vellum shade for secondary */
+  --secondary: 43 23% 89%;
+  --secondary-foreground: 144 32% 17%;
+
+  --muted: 43 23% 92%;
+  --muted-foreground: 40 4% 40%;
+
+  /* Accent: slightly warmer, for interactive elements */
+  --accent: 43 23% 89%;
+  --accent-foreground: 40 4% 10%;
+
+  /* Archival Red */
+  --destructive: 0 54% 35%;
+  --destructive-foreground: 0 0% 100%;
+
+  --sidebar: 42 21% 95%;
+  --sidebar-foreground: 40 4% 20%;
+  --sidebar-border: 43 16% 85%;
+  --sidebar-primary: 144 32% 17%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 43 23% 88%;
+  --sidebar-accent-foreground: 40 4% 10%;
+  --sidebar-ring: 144 32% 17%;
+
+  --chart-1: 144 32% 17%;
+  --chart-2: 0 54% 35%;
+  --chart-3: 200 40% 30%;
+  --chart-4: 40 30% 40%;
+  --chart-5: 280 20% 40%;
+
+  --app-font-sans: 'Inter', sans-serif;
+  --app-font-serif: 'Playfair Display', serif;
+  --app-font-mono: Menlo, monospace;
+  
+  --radius: 0.3rem; 
+}
+
+.dark {
+  --button-outline: rgba(255, 255, 255, 0.1);
+  --badge-outline: rgba(255, 255, 255, 0.05);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(255, 255, 255, 0.04);
+  --elevate-2: rgba(255, 255, 255, 0.09);
+
+  /* Very dark ink background */
+  --background: 0 0% 8%;
+  --foreground: 42 21% 90%;
+
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+  --ring: 144 30% 50%;
+
+  --card: 0 0% 12%;
+  --card-foreground: 42 21% 90%;
+  --card-border: 0 0% 20%;
+
+  --popover: 0 0% 12%;
+  --popover-foreground: 42 21% 90%;
+  --popover-border: 0 0% 20%;
+
+  /* Lighter Library Green for dark mode */
+  --primary: 144 30% 40%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 0 0% 18%;
+  --secondary-foreground: 42 21% 90%;
+
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 60%;
+
+  --accent: 0 0% 18%;
+  --accent-foreground: 42 21% 90%;
+
+  --destructive: 0 50% 40%;
+  --destructive-foreground: 0 0% 100%;
+
+  --sidebar: 0 0% 10%;
+  --sidebar-foreground: 42 21% 80%;
+  --sidebar-border: 0 0% 18%;
+  --sidebar-primary: 144 30% 40%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 18%;
+  --sidebar-accent-foreground: 42 21% 90%;
+  --sidebar-ring: 144 30% 50%;
+  
+  --chart-1: 144 30% 40%;
+  --chart-2: 0 50% 40%;
+  --chart-3: 200 40% 40%;
+  --chart-4: 40 30% 50%;
+  --chart-5: 280 20% 50%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply font-sans antialiased bg-background text-foreground selection:bg-primary/20 selection:text-primary;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif font-medium tracking-tight;
+  }
+}
+
+@layer utilities {
+  input[type='search']::-webkit-search-cancel-button { @apply hidden; }
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+}

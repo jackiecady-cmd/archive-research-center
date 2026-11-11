@@ -1,0 +1,1478 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Archive & Research Center API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: sources
+    description: Archive source records
+  - name: collections
+    description: Curated research collections
+  - name: researchProjects
+    description: User research projects
+  - name: savedSources
+    description: Sources saved to projects
+  - name: notes
+    description: Research notes
+  - name: claimCards
+    description: Claim cards with evidence trails
+  - name: evidence
+    description: Evidence items
+  - name: forum
+    description: Research Commons forum
+  - name: membership
+    description: Membership and subscription
+  - name: concierge
+    description: Research Concierge onboarding
+  - name: translations
+    description: Translation workspace — layered linguistic analysis per source
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ─── Sources ─────────────────────────────────────────────────────────────────
+
+  /sources:
+    get:
+      operationId: listSources
+      tags: [sources]
+      summary: List and search archive sources
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: collection
+          in: query
+          schema: { type: string }
+        - name: repository
+          in: query
+          schema: { type: string }
+        - name: repositoryAccess
+          in: query
+          schema:
+            type: string
+            enum: [digitized, catalog_only, restricted, physical_access_required]
+        - name: type
+          in: query
+          schema: { type: string }
+        - name: language
+          in: query
+          schema: { type: string }
+        - name: confidence
+          in: query
+          schema: { type: string }
+        - name: availability
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: number }
+        - name: limit
+          in: query
+          schema: { type: number }
+        - name: yearFrom
+          in: query
+          schema: { type: number }
+        - name: yearTo
+          in: query
+          schema: { type: number }
+      responses:
+        "200":
+          description: Paginated list of sources
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SourcePage"
+    post:
+      operationId: createSource
+      tags: [sources]
+      summary: Create a new source record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SourceInput"
+      responses:
+        "201":
+          description: Created source
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Source"
+
+  /sources/{id}:
+    get:
+      operationId: getSource
+      tags: [sources]
+      summary: Get a single source record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: Source record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Source"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateSource
+      tags: [sources]
+      summary: Update editable fields on a source record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSourceInput"
+      responses:
+        "200":
+          description: Updated source
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Source"
+        "404":
+          description: Not found
+
+  /sources/stats:
+    get:
+      operationId: getSourceStats
+      tags: [sources]
+      summary: Archive statistics overview
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArchiveStats"
+
+  # ─── Collections ─────────────────────────────────────────────────────────────
+
+  /collections:
+    get:
+      operationId: listCollections
+      tags: [collections]
+      summary: List all curated collections
+      responses:
+        "200":
+          description: List of collections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Collection"
+
+  /collections/{slug}:
+    get:
+      operationId: getCollection
+      tags: [collections]
+      summary: Get a collection by slug with its sources
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Collection detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionDetail"
+        "404":
+          description: Not found
+
+  # ─── Repositories ────────────────────────────────────────────────────────────
+
+  /repositories:
+    get:
+      operationId: listRepositories
+      tags: [repositories]
+      summary: List holding repositories
+      responses:
+        "200":
+          description: List of repositories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Repository"
+
+  /repositories/{slug}:
+    get:
+      operationId: getRepository
+      tags: [repositories]
+      summary: Get a holding repository with its linked sources
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Repository detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepositoryDetail"
+        "404":
+          description: Not found
+
+  # ─── Research Projects ────────────────────────────────────────────────────────
+
+  /research-projects:
+    get:
+      operationId: listResearchProjects
+      tags: [researchProjects]
+      summary: List all research projects for the current user
+      responses:
+        "200":
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResearchProject"
+    post:
+      operationId: createResearchProject
+      tags: [researchProjects]
+      summary: Create a new research project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResearchProjectInput"
+      responses:
+        "201":
+          description: Created project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchProject"
+
+  /research-projects/{id}:
+    get:
+      operationId: getResearchProject
+      tags: [researchProjects]
+      summary: Get a research project with summary
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: Project detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchProjectDetail"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateResearchProject
+      tags: [researchProjects]
+      summary: Update a research project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResearchProjectUpdate"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchProject"
+    delete:
+      operationId: deleteResearchProject
+      tags: [researchProjects]
+      summary: Delete a research project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Saved Sources ────────────────────────────────────────────────────────────
+
+  /research-projects/{projectId}/saved-sources:
+    get:
+      operationId: listSavedSources
+      tags: [savedSources]
+      summary: List saved sources in a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: List of saved sources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SavedSource"
+    post:
+      operationId: saveSource
+      tags: [savedSources]
+      summary: Save a source to a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema: { type: number }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SavedSourceInput"
+      responses:
+        "201":
+          description: Saved source
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedSource"
+
+  /research-projects/{projectId}/saved-sources/{id}:
+    delete:
+      operationId: removeSavedSource
+      tags: [savedSources]
+      summary: Remove a saved source from a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema: { type: number }
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "204":
+          description: Removed
+
+  # ─── Notes ────────────────────────────────────────────────────────────────────
+
+  /research-projects/{projectId}/notes:
+    get:
+      operationId: listNotes
+      tags: [notes]
+      summary: List notes in a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: List of notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Note"
+    post:
+      operationId: createNote
+      tags: [notes]
+      summary: Create a note in a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema: { type: number }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NoteInput"
+      responses:
+        "201":
+          description: Created note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+
+  /research-projects/{projectId}/notes/{id}:
+    patch:
+      operationId: updateNote
+      tags: [notes]
+      summary: Update a note
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema: { type: number }
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NoteUpdate"
+      responses:
+        "200":
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Note"
+    delete:
+      operationId: deleteNote
+      tags: [notes]
+      summary: Delete a note
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema: { type: number }
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Claim Cards ──────────────────────────────────────────────────────────────
+
+  /claim-cards:
+    get:
+      operationId: listClaimCards
+      tags: [claimCards]
+      summary: List claim cards, optionally filtered by project
+      parameters:
+        - name: projectId
+          in: query
+          schema: { type: number }
+      responses:
+        "200":
+          description: List of claim cards
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClaimCard"
+    post:
+      operationId: createClaimCard
+      tags: [claimCards]
+      summary: Create a claim card
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimCardInput"
+      responses:
+        "201":
+          description: Created claim card
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaimCard"
+
+  /claim-cards/{id}:
+    get:
+      operationId: getClaimCard
+      tags: [claimCards]
+      summary: Get a claim card
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: Claim card
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaimCard"
+    patch:
+      operationId: updateClaimCard
+      tags: [claimCards]
+      summary: Update a claim card
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimCardUpdate"
+      responses:
+        "200":
+          description: Updated claim card
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaimCard"
+
+  /claim-cards/{id}/evidence-trail:
+    get:
+      operationId: getEvidenceTrail
+      tags: [claimCards]
+      summary: Get the full evidence trail for a claim card
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: Evidence trail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvidenceTrail"
+
+  # ─── Evidence ─────────────────────────────────────────────────────────────────
+
+  /claim-cards/{claimCardId}/evidence:
+    get:
+      operationId: listEvidence
+      tags: [evidence]
+      summary: List evidence for a claim card
+      parameters:
+        - name: claimCardId
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: List of evidence items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Evidence"
+    post:
+      operationId: addEvidence
+      tags: [evidence]
+      summary: Add evidence to a claim card
+      parameters:
+        - name: claimCardId
+          in: path
+          required: true
+          schema: { type: number }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvidenceInput"
+      responses:
+        "201":
+          description: Added evidence
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Evidence"
+
+  /claim-cards/{claimCardId}/evidence/{id}:
+    delete:
+      operationId: deleteEvidence
+      tags: [evidence]
+      summary: Remove an evidence item
+      parameters:
+        - name: claimCardId
+          in: path
+          required: true
+          schema: { type: number }
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Forum ────────────────────────────────────────────────────────────────────
+
+  /forum/threads:
+    get:
+      operationId: listForumThreads
+      tags: [forum]
+      summary: List forum threads
+      parameters:
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: q
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of threads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ForumThread"
+    post:
+      operationId: createForumThread
+      tags: [forum]
+      summary: Create a forum thread
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForumThreadInput"
+      responses:
+        "201":
+          description: Created thread
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForumThread"
+
+  /forum/threads/{id}:
+    get:
+      operationId: getForumThread
+      tags: [forum]
+      summary: Get a forum thread with its replies
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: Thread with replies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForumThreadDetail"
+
+  /forum/threads/{threadId}/replies:
+    post:
+      operationId: createForumReply
+      tags: [forum]
+      summary: Reply to a forum thread
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema: { type: number }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForumReplyInput"
+      responses:
+        "201":
+          description: Created reply
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForumReply"
+
+  /forum/recent:
+    get:
+      operationId: getRecentForumActivity
+      tags: [forum]
+      summary: Recent forum activity feed
+      responses:
+        "200":
+          description: Recent threads and replies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForumActivity"
+
+  # ─── Membership ───────────────────────────────────────────────────────────────
+
+  /membership/plans:
+    get:
+      operationId: listMembershipPlans
+      tags: [membership]
+      summary: List available membership plans
+      responses:
+        "200":
+          description: Plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MembershipPlan"
+
+  /membership/current:
+    get:
+      operationId: getCurrentMembership
+      tags: [membership]
+      summary: Get the current user membership
+      responses:
+        "200":
+          description: Current membership info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Membership"
+
+  /membership/subscribe:
+    post:
+      operationId: subscribeMembership
+      tags: [membership]
+      summary: Subscribe to a membership plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MembershipSubscribeInput"
+      responses:
+        "200":
+          description: Updated membership
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Membership"
+
+  /membership/cancel:
+    post:
+      operationId: cancelMembership
+      tags: [membership]
+      summary: Cancel the current membership
+      responses:
+        "200":
+          description: Cancelled membership
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Membership"
+
+  # ─── Research Concierge ───────────────────────────────────────────────────────
+
+  /concierge/paths:
+    get:
+      operationId: listConciergePaths
+      tags: [concierge]
+      summary: List concierge researcher paths
+      responses:
+        "200":
+          description: Available paths
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConciergePath"
+
+  /concierge/recommend:
+    post:
+      operationId: getRecommendation
+      tags: [concierge]
+      summary: Get personalized path recommendation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConciergeRecommendInput"
+      responses:
+        "200":
+          description: Recommendation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConciergeRecommendation"
+
+  # ─── Translations ───────────────────────────────────────────────────────────
+
+  /translations:
+    get:
+      operationId: getTranslation
+      tags: [translations]
+      summary: Get or auto-create a translation workspace for a source
+      parameters:
+        - name: sourceId
+          in: query
+          required: true
+          schema: { type: number }
+      responses:
+        "200":
+          description: Translation workspace record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Translation"
+        "400":
+          description: Missing or invalid sourceId
+
+  /translations/workspaces:
+    get:
+      operationId: listTranslationWorkspaces
+      tags: [translations]
+      summary: List saved translation workspaces with source info, optionally filtered by search query
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: number }
+      responses:
+        "200":
+          description: List of workspace summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TranslationWorkspaceSummary"
+
+  /translations/{id}:
+    patch:
+      operationId: updateTranslation
+      tags: [translations]
+      summary: Save one or more translation layers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: number }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranslationUpdateInput"
+      responses:
+        "200":
+          description: Updated translation workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Translation"
+        "404":
+          description: Not found
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    # ─── Source ──────────────────────────────────────────────────────────────────
+
+    Source:
+      type: object
+      required: [id, title, sourceType, collectionSlug, provenance, confidence, availability]
+      properties:
+        id: { type: number }
+        title: { type: string }
+        sourceType:
+          type: string
+          enum: [primary, translation, scholarship, interpretation, ai_assistance, conclusion]
+        collectionSlug: { type: ["string", "null"] }
+        collectionName: { type: ["string", "null"] }
+        repository:
+          oneOf:
+            - $ref: "#/components/schemas/RepositorySummary"
+            - type: "null"
+        repositoryAccessStatus:
+          type: ["string", "null"]
+          enum: [digitized, catalog_only, restricted, physical_access_required, null]
+        repositoryAccessNote: { type: ["string", "null"] }
+        author: { type: ["string", "null"] }
+        dateLabel: { type: ["string", "null"] }
+        language: { type: ["string", "null"] }
+        originalLanguage: { type: ["string", "null"] }
+        provenance: { type: string }
+        confidence:
+          type: string
+          enum: [high, medium, low, uncertain]
+        chronology: { type: ["string", "null"] }
+        availability:
+          type: string
+          enum: [public_domain, open_access, restricted, fee_required]
+        rightsStatement: { type: ["string", "null"] }
+        description: { type: ["string", "null"] }
+        excerpt: { type: ["string", "null"] }
+        originalLanguageText: { type: ["string", "null"] }
+        externalUrl: { type: ["string", "null"] }
+        tags: { type: array, items: { type: string } }
+        yearApprox: { type: ["number", "null"] }
+        createdAt: { type: string }
+
+    SourceInput:
+      type: object
+      required: [title, sourceType, provenance, confidence, availability]
+      properties:
+        title: { type: string }
+        sourceType:
+          type: string
+          enum: [primary, translation, scholarship, interpretation, ai_assistance, conclusion]
+        collectionSlug: { type: string }
+        repositoryId: { type: number }
+        repositoryAccessStatus:
+          type: string
+          enum: [digitized, catalog_only, restricted, physical_access_required]
+        repositoryAccessNote: { type: string }
+        author: { type: string }
+        dateLabel: { type: string }
+        language: { type: string }
+        originalLanguage: { type: string }
+        provenance: { type: string }
+        confidence:
+          type: string
+          enum: [high, medium, low, uncertain]
+        chronology: { type: string }
+        availability:
+          type: string
+          enum: [public_domain, open_access, restricted, fee_required]
+        rightsStatement: { type: string }
+        description: { type: string }
+        excerpt: { type: string }
+        originalLanguageText: { type: string }
+        externalUrl: { type: string }
+        tags: { type: array, items: { type: string } }
+        yearApprox: { type: number }
+
+    UpdateSourceInput:
+      type: object
+      properties:
+        originalLanguage: { type: string }
+        originalLanguageText: { type: string }
+        yearApprox: { type: number }
+        provenance: { type: string }
+        chronology: { type: string }
+        rightsStatement: { type: string }
+
+    RepositorySummary:
+      type: object
+      required: [id, name, slug, url, institutionType]
+      properties:
+        id: { type: number }
+        name: { type: string }
+        slug: { type: string }
+        url: { type: string }
+        institutionType: { type: string }
+
+    Repository:
+      type: object
+      required: [id, name, slug, url, institutionType, sourceCount]
+      properties:
+        id: { type: number }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: ["string", "null"] }
+        url: { type: string }
+        institutionType: { type: string }
+        sourceCount: { type: number }
+
+    RepositoryDetail:
+      type: object
+      required: [repository, sources]
+      properties:
+        repository:
+          $ref: "#/components/schemas/Repository"
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+
+    SourcePage:
+      type: object
+      required: [items, total, page, limit]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+        total: { type: number }
+        page: { type: number }
+        limit: { type: number }
+
+    ArchiveStats:
+      type: object
+      required: [totalSources, byType, byConfidence, byCollection, byAvailability]
+      properties:
+        totalSources: { type: number }
+        byType:
+          type: array
+          items:
+            type: object
+            required: [type, count]
+            properties:
+              type: { type: string }
+              count: { type: number }
+        byConfidence:
+          type: array
+          items:
+            type: object
+            required: [confidence, count]
+            properties:
+              confidence: { type: string }
+              count: { type: number }
+        byCollection:
+          type: array
+          items:
+            type: object
+            required: [collection, count]
+            properties:
+              collection: { type: string }
+              count: { type: number }
+        byAvailability:
+          type: array
+          items:
+            type: object
+            required: [availability, count]
+            properties:
+              availability: { type: string }
+              count: { type: number }
+
+    # ─── Collection ────────────────────────────────────────────────────────────
+
+    Collection:
+      type: object
+      required: [id, name, slug, subject, sourceCount, featured]
+      properties:
+        id: { type: number }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: ["string", "null"] }
+        subject: { type: string }
+        iconLabel: { type: ["string", "null"] }
+        sourceCount: { type: number }
+        featured: { type: boolean }
+        coverImageUrl: { type: ["string", "null"] }
+
+    CollectionDetail:
+      type: object
+      required: [collection, sources]
+      properties:
+        collection:
+          $ref: "#/components/schemas/Collection"
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+
+    # ─── Research Project ───────────────────────────────────────────────────────
+
+    ResearchProject:
+      type: object
+      required: [id, title, sourceCount, noteCount, claimCount, createdAt, updatedAt]
+      properties:
+        id: { type: number }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        researcherType: { type: ["string", "null"] }
+        sourceCount: { type: number }
+        noteCount: { type: number }
+        claimCount: { type: number }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    ResearchProjectInput:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        researcherType: { type: string }
+
+    ResearchProjectUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: string }
+        researcherType: { type: string }
+
+    ResearchProjectDetail:
+      type: object
+      required: [project, savedSources, notes, claimCards]
+      properties:
+        project:
+          $ref: "#/components/schemas/ResearchProject"
+        savedSources:
+          type: array
+          items:
+            $ref: "#/components/schemas/SavedSource"
+        notes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Note"
+        claimCards:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClaimCard"
+
+    # ─── Saved Source ───────────────────────────────────────────────────────────
+
+    SavedSource:
+      type: object
+      required: [id, projectId, sourceId, addedAt]
+      properties:
+        id: { type: number }
+        projectId: { type: number }
+        sourceId: { type: number }
+        source:
+          $ref: "#/components/schemas/Source"
+        userNotes: { type: ["string", "null"] }
+        addedAt: { type: string }
+
+    SavedSourceInput:
+      type: object
+      required: [sourceId]
+      properties:
+        sourceId: { type: number }
+        userNotes: { type: string }
+
+    # ─── Note ───────────────────────────────────────────────────────────────────
+
+    Note:
+      type: object
+      required: [id, projectId, title, content, createdAt, updatedAt]
+      properties:
+        id: { type: number }
+        projectId: { type: number }
+        title: { type: string }
+        content: { type: string }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    NoteInput:
+      type: object
+      required: [title, content]
+      properties:
+        title: { type: string }
+        content: { type: string }
+
+    NoteUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        content: { type: string }
+
+    # ─── Claim Card ─────────────────────────────────────────────────────────────
+
+    ClaimCard:
+      type: object
+      required: [id, title, claim, status, evidenceCount, createdAt]
+      properties:
+        id: { type: number }
+        title: { type: string }
+        claim: { type: string }
+        status:
+          type: string
+          enum: [supported, contested, uncertain, refuted]
+        projectId: { type: ["number", "null"] }
+        evidenceCount: { type: number }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    ClaimCardInput:
+      type: object
+      required: [title, claim, status]
+      properties:
+        title: { type: string }
+        claim: { type: string }
+        status:
+          type: string
+          enum: [supported, contested, uncertain, refuted]
+        projectId: { type: number }
+
+    ClaimCardUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        claim: { type: string }
+        status:
+          type: string
+          enum: [supported, contested, uncertain, refuted]
+
+    EvidenceTrail:
+      type: object
+      required: [claimCard, evidence, summary]
+      properties:
+        claimCard:
+          $ref: "#/components/schemas/ClaimCard"
+        evidence:
+          type: array
+          items:
+            $ref: "#/components/schemas/Evidence"
+        summary: { type: string }
+
+    # ─── Evidence ───────────────────────────────────────────────────────────────
+
+    Evidence:
+      type: object
+      required: [id, claimCardId, sourceId, role, summary, createdAt]
+      properties:
+        id: { type: number }
+        claimCardId: { type: number }
+        sourceId: { type: number }
+        source:
+          $ref: "#/components/schemas/Source"
+        role:
+          type: string
+          enum: [supports, contradicts, contextualizes, neutral]
+        summary: { type: string }
+        createdAt: { type: string }
+
+    EvidenceInput:
+      type: object
+      required: [sourceId, role, summary]
+      properties:
+        sourceId: { type: number }
+        role:
+          type: string
+          enum: [supports, contradicts, contextualizes, neutral]
+        summary: { type: string }
+
+    # ─── Forum ──────────────────────────────────────────────────────────────────
+
+    ForumThread:
+      type: object
+      required: [id, title, category, authorName, replyCount, createdAt]
+      properties:
+        id: { type: number }
+        title: { type: string }
+        content: { type: string }
+        category: { type: string }
+        authorName: { type: string }
+        replyCount: { type: number }
+        tags: { type: array, items: { type: string } }
+        createdAt: { type: string }
+        lastActivityAt: { type: string }
+
+    ForumThreadInput:
+      type: object
+      required: [title, content, category, authorName]
+      properties:
+        title: { type: string }
+        content: { type: string }
+        category: { type: string }
+        authorName: { type: string }
+        tags: { type: array, items: { type: string } }
+
+    ForumReply:
+      type: object
+      required: [id, threadId, content, authorName, createdAt]
+      properties:
+        id: { type: number }
+        threadId: { type: number }
+        content: { type: string }
+        authorName: { type: string }
+        createdAt: { type: string }
+
+    ForumReplyInput:
+      type: object
+      required: [content, authorName]
+      properties:
+        content: { type: string }
+        authorName: { type: string }
+
+    ForumThreadDetail:
+      type: object
+      required: [thread, replies]
+      properties:
+        thread:
+          $ref: "#/components/schemas/ForumThread"
+        replies:
+          type: array
+          items:
+            $ref: "#/components/schemas/ForumReply"
+
+    ForumActivity:
+      type: object
+      required: [recentThreads, recentReplies]
+      properties:
+        recentThreads:
+          type: array
+          items:
+            $ref: "#/components/schemas/ForumThread"
+        recentReplies:
+          type: array
+          items:
+            $ref: "#/components/schemas/ForumReply"
+
+    # ─── Membership ─────────────────────────────────────────────────────────────
+
+    MembershipPlan:
+      type: object
+      required: [id, name, billingPeriod, priceUsd, features]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        billingPeriod:
+          type: string
+          enum: [monthly, annual]
+        priceUsd: { type: number }
+        features: { type: array, items: { type: string } }
+        recommended: { type: boolean }
+
+    Membership:
+      type: object
+      required: [tier, billingPeriod, status]
+      properties:
+        tier: { type: string }
+        billingPeriod: { type: ["string", "null"] }
+        status:
+          type: string
+          enum: [active, cancelled, free]
+        renewsAt: { type: ["string", "null"] }
+        cancelledAt: { type: ["string", "null"] }
+
+    MembershipSubscribeInput:
+      type: object
+      required: [planId]
+      properties:
+        planId: { type: string }
+
+    # ─── Concierge ──────────────────────────────────────────────────────────────
+
+    ConciergePath:
+      type: object
+      required: [id, name, description, audience, suggestedCollections]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        audience: { type: string }
+        icon: { type: string }
+        suggestedCollections: { type: array, items: { type: string } }
+        suggestedStartingPoints: { type: array, items: { type: string } }
+
+    ConciergeRecommendInput:
+      type: object
+      required: [researcherType, interests]
+      properties:
+        researcherType: { type: string }
+        interests: { type: array, items: { type: string } }
+        experienceLevel:
+          type: string
+          enum: [beginner, intermediate, advanced]
+
+    ConciergeRecommendation:
+      type: object
+      required: [path, suggestedSources, suggestedCollections, nextSteps]
+      properties:
+        path:
+          $ref: "#/components/schemas/ConciergePath"
+        suggestedSources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+        suggestedCollections:
+          type: array
+          items:
+            $ref: "#/components/schemas/Collection"
+        nextSteps: { type: array, items: { type: string } }
+
+    # ─── Translations ─────────────────────────────────────────────────────────
+
+    Translation:
+      type: object
+      required: [id, sourceId, createdAt, updatedAt]
+      properties:
+        id: { type: number }
+        sourceId: { type: number }
+        originalText: { type: ["string", "null"] }
+        transliteration: { type: ["string", "null"] }
+        morphologyNotes: { type: ["string", "null"] }
+        literalTranslation: { type: ["string", "null"] }
+        readableTranslation: { type: ["string", "null"] }
+        publishedTranslation: { type: ["string", "null"] }
+        publishedTranslationAttribution: { type: ["string", "null"] }
+        commentary: { type: ["string", "null"] }
+        userInterpretation: { type: ["string", "null"] }
+        aiAssistance: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    TranslationUpdateInput:
+      type: object
+      properties:
+        originalText: { type: string }
+        transliteration: { type: string }
+        morphologyNotes: { type: string }
+        literalTranslation: { type: string }
+        readableTranslation: { type: string }
+        publishedTranslation: { type: string }
+        publishedTranslationAttribution: { type: string }
+        commentary: { type: string }
+        userInterpretation: { type: string }
+        aiAssistance: { type: string }
+
+    TranslationWorkspaceSummary:
+      type: object
+      required: [id, sourceId, sourceTitle, filledLayerCount, updatedAt]
+      properties:
+        id: { type: number }
+        sourceId: { type: number }
+        sourceTitle: { type: string }
+        sourceAuthor: { type: ["string", "null"] }
+        sourceDateLabel: { type: ["string", "null"] }
+        sourceLanguage: { type: ["string", "null"] }
+        sourceCollectionSlug: { type: ["string", "null"] }
+        filledLayerCount: { type: number }
+        preview: { type: ["string", "null"] }
+        updatedAt: { type: string }
