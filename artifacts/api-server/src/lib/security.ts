@@ -128,3 +128,23 @@ export function createRateLimiter(options: { windowMs: number; max: number }) {
     next();
   };
 }
+
+/** In-handler budget keyed by account id or IP. True while the caller is still inside the cap. */
+export function createBudget(options: { windowMs: number; max: number }) {
+  const buckets = new Map<string, Bucket>();
+  return function allow(key: string): boolean {
+    const now = Date.now();
+    let bucket = buckets.get(key);
+    if (!bucket || bucket.resetAt <= now) {
+      bucket = { count: 0, resetAt: now + options.windowMs };
+      buckets.set(key, bucket);
+    }
+    bucket.count += 1;
+    if (buckets.size > 10_000) {
+      for (const [entry, value] of buckets) {
+        if (value.resetAt <= now) buckets.delete(entry);
+      }
+    }
+    return bucket.count <= options.max;
+  };
+}

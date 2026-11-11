@@ -9,6 +9,7 @@ export type AuthUser = {
   displayName: string;
   role: "user" | "editor" | "moderator" | "admin";
   entitlement: "free" | "paid" | "comp";
+  compStaff?: boolean;
 };
 
 type AuthContextValue = {

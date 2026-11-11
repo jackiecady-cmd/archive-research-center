@@ -37,7 +37,8 @@ export const RegisterResponse = zod.object({
   "email": zod.email(),
   "displayName": zod.string(),
   "role": zod.enum(['user', 'editor', 'moderator', 'admin']),
-  "entitlement": zod.enum(['free', 'paid', 'comp'])
+  "entitlement": zod.enum(['free', 'paid', 'comp']),
+  "compStaff": zod.boolean().describe('True for an administrator or the active comp delegate. They can issue codes and review comp-code incidents.')
 })
 
 
@@ -58,7 +59,8 @@ export const LoginResponse = zod.object({
   "email": zod.email(),
   "displayName": zod.string(),
   "role": zod.enum(['user', 'editor', 'moderator', 'admin']),
-  "entitlement": zod.enum(['free', 'paid', 'comp'])
+  "entitlement": zod.enum(['free', 'paid', 'comp']),
+  "compStaff": zod.boolean().describe('True for an administrator or the active comp delegate. They can issue codes and review comp-code incidents.')
 })
 
 
@@ -76,7 +78,8 @@ export const GetCurrentUserResponse = zod.object({
   "email": zod.email(),
   "displayName": zod.string(),
   "role": zod.enum(['user', 'editor', 'moderator', 'admin']),
-  "entitlement": zod.enum(['free', 'paid', 'comp'])
+  "entitlement": zod.enum(['free', 'paid', 'comp']),
+  "compStaff": zod.boolean().describe('True for an administrator or the active comp delegate. They can issue codes and review comp-code incidents.')
 })
 
 

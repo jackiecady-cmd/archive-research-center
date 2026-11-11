@@ -3,11 +3,13 @@ import { eq } from "drizzle-orm";
 import { db, usersTable, hashPassword, verifyPassword, type UserRole } from "@workspace/db";
 import { LoginBody, RegisterBody } from "@workspace/api-zod";
 import { sendValidationError } from "../lib/http";
+import { isCompStaff } from "../auth/comp-staff";
 import {
   createSession,
   destroySession,
   loadSessionUserById,
   toPublicUser,
+  type SessionUser,
 } from "../auth/session";
 
 const router = Router();
@@ -17,6 +19,10 @@ let dummyPasswordHash: Promise<string> | null = null;
 function dummyHash(): Promise<string> {
   dummyPasswordHash ??= hashPassword("not-a-real-account");
   return dummyPasswordHash;
+}
+
+async function present(user: SessionUser) {
+  return { ...toPublicUser(user), compStaff: await isCompStaff(user) };
 }
 
 function roleForNewAccount(email: string): UserRole {
@@ -57,7 +63,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     return;
   }
   await createSession(res, user.id);
-  res.status(201).json(toPublicUser(user));
+  res.status(201).json(await present(user));
 });
 
 router.post("/auth/login", async (req, res): Promise<void> => {
@@ -85,7 +91,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
   await createSession(res, user.id);
-  res.json(toPublicUser(user));
+  res.json(await present(user));
 });
 
 router.post("/auth/logout", async (req, res): Promise<void> => {
@@ -98,7 +104,7 @@ router.get("/auth/me", async (req, res): Promise<void> => {
     res.status(401).json({ error: "Authentication required" });
     return;
   }
-  res.json(toPublicUser(req.user));
+  res.json(await present(req.user));
 });
 
 export default router;

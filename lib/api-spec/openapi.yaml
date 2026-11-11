@@ -1045,7 +1045,7 @@ components:
   schemas:
     AuthUser:
       type: object
-      required: [id, email, displayName, role, entitlement]
+      required: [id, email, displayName, role, entitlement, compStaff]
       properties:
         id: { type: integer }
         email: { type: string, format: email }
@@ -1056,6 +1056,9 @@ components:
         entitlement:
           type: string
           enum: [free, paid, comp]
+        compStaff:
+          type: boolean
+          description: True for an administrator or the active comp delegate. They can issue codes and review comp-code incidents.
     RegisterInput:
       type: object
       required: [email, password, displayName]

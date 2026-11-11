@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,17 @@ type CompCodeRow = {
   singleUse: boolean;
   revokedAt: string | null;
   redeemedCount: number;
+};
+
+type IncidentRow = {
+  id: number;
+  codeHint: string;
+  attemptingName: string;
+  attemptingEmail: string;
+  ip: string;
+  userAgent: string;
+  status: string;
+  createdAt: string;
 };
 
 type AuditRow = {
@@ -37,6 +48,16 @@ export function AccessPanel() {
   const [botEmail, setBotEmail] = useState("");
   const [botName, setBotName] = useState("");
   const [botToken, setBotToken] = useState<string | null>(null);
+
+  const incidents = useQuery({
+    queryKey: ["comp-incidents"],
+    enabled: user?.compStaff === true,
+    queryFn: async () => {
+      const result = await apiSend("/api/comp-code-incidents");
+      if (!result.ok) throw new Error(apiError(result.json, "Could not load comp alerts"));
+      return result.json as IncidentRow[];
+    },
+  });
 
   const codes = useQuery({
     queryKey: ["comp-codes"],
@@ -67,6 +88,21 @@ export function AccessPanel() {
       return result.json as AuditRow[];
     },
   });
+
+  const resolveIncident = async (id: number, status: "reviewed" | "dismissed") => {
+    const result = await apiSend(`/api/comp-code-incidents/${id}/resolve`, { method: "POST", body: { status } });
+    if (!result.ok) {
+      toast({ title: apiError(result.json, "Could not update that alert") });
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["comp-incidents"] });
+    await queryClient.invalidateQueries({ queryKey: ["comp-incidents-unread"] });
+  };
+
+  useEffect(() => {
+    if (!incidents.data) return;
+    void queryClient.invalidateQueries({ queryKey: ["comp-incidents-unread"] });
+  }, [incidents.data, queryClient]);
 
   const redeem = async (event: FormEvent) => {
     event.preventDefault();
@@ -144,7 +180,7 @@ export function AccessPanel() {
         <CardHeader>
           <CardTitle className="font-serif text-xl">Comp code</CardTitle>
           <CardDescription>
-            A comp lasts until an administrator revokes it and overrides every other access level.
+            A comp lasts until an administrator revokes it and overrides every other access level. The code stays with the first account that redeems it.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -154,6 +190,37 @@ export function AccessPanel() {
           </form>
         </CardContent>
       </Card>
+
+      {user.compStaff ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-serif text-xl">Comp code alerts</CardTitle>
+            <CardDescription>
+              Another account tried a code that is already bound. The holder keeps access. Only an administrator and the comp delegate can see this list.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            {incidents.data?.length === 0 ? <p className="text-muted-foreground">No alerts.</p> : null}
+            {incidents.data?.map((row) => (
+              <div key={row.id} className="border-b border-border pb-3 space-y-1">
+                <div className="font-medium">
+                  ····{row.codeHint} · {row.attemptingName} · {row.status}
+                </div>
+                <div className="text-muted-foreground">
+                  {row.attemptingEmail} · {new Date(row.createdAt).toLocaleString()}
+                </div>
+                <div className="text-muted-foreground break-all">IP {row.ip} · {row.userAgent}</div>
+                {row.status === "open" ? (
+                  <div className="flex gap-2 pt-1">
+                    <Button variant="outline" size="sm" onClick={() => { void resolveIncident(row.id, "reviewed"); }}>Reviewed</Button>
+                    <Button variant="outline" size="sm" onClick={() => { void resolveIncident(row.id, "dismissed"); }}>Dismiss</Button>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
 
       {user.role === "admin" ? (
         <>

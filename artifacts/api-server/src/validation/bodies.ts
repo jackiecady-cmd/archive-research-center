@@ -18,6 +18,10 @@ export const delegateBody = z.object({
   email: z.email().trim().max(200),
 });
 
+export const incidentResolveBody = z.object({
+  status: z.enum(["reviewed", "dismissed"]),
+});
+
 export const serviceAccountBody = z.object({
   email: z.email().trim().max(200),
   displayName: z.string().trim().min(1).max(80),

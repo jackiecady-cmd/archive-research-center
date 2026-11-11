@@ -1,6 +1,8 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import {
+  compCodeIncidentReadsTable,
+  compCodeIncidentsTable,
   compCodesTable,
   compDelegatesTable,
   compGrantsTable,
@@ -9,12 +11,28 @@ import {
   usersTable,
 } from "@workspace/db";
 import { writeAudit } from "../auth/audit";
+import { notifyCompIncident } from "../auth/comp-incident-notifier";
+import { isCompStaff } from "../auth/comp-staff";
 import { requireAdmin, requireUser } from "../auth/middleware";
 import { hashOpaqueSecret, newOpaqueCode } from "../auth/secrets";
 import { parseIntParam, sendValidationError } from "../lib/http";
-import { compCodeCreateBody, delegateBody, redeemCodeBody } from "../validation/bodies";
+import { createBudget } from "../lib/security";
+import { compCodeCreateBody, delegateBody, incidentResolveBody, redeemCodeBody } from "../validation/bodies";
 
 const router = Router();
+
+const REDEEM_WINDOW_MS = 15 * 60_000;
+const allowRedeemForAccount = createBudget({ windowMs: REDEEM_WINDOW_MS, max: 10 });
+const allowIncidentForAccount = createBudget({ windowMs: REDEEM_WINDOW_MS, max: 3 });
+const allowIncidentForIp = createBudget({ windowMs: REDEEM_WINDOW_MS, max: 5 });
+
+function clientIp(req: Request): string {
+  return (req.ip || req.socket.remoteAddress || "unknown").slice(0, 80);
+}
+
+function clientUserAgent(req: Request): string {
+  return (req.get("user-agent") || "unknown").slice(0, 500);
+}
 
 function isUniqueViolation(error: unknown): boolean {
   let current: unknown = error;
@@ -26,12 +44,7 @@ function isUniqueViolation(error: unknown): boolean {
 }
 
 async function issuerAllowed(userId: number, role: string): Promise<boolean> {
-  if (role === "admin") return true;
-  const [delegate] = await db
-    .select({ id: compDelegatesTable.id })
-    .from(compDelegatesTable)
-    .where(and(eq(compDelegatesTable.userId, userId), isNull(compDelegatesTable.revokedAt)));
-  return Boolean(delegate);
+  return isCompStaff({ id: userId, role });
 }
 
 router.post("/comp-codes", async (req, res): Promise<void> => {
@@ -90,12 +103,18 @@ router.get("/comp-codes", async (req, res): Promise<void> => {
 router.post("/comp-codes/redeem", async (req, res): Promise<void> => {
   const user = requireUser(req, res);
   if (!user) return;
+  if (!allowRedeemForAccount(`acct:${user.id}`)) {
+    res.status(429).json({ error: "Too many requests" });
+    return;
+  }
   const parsed = redeemCodeBody.safeParse(req.body);
   if (!parsed.success) {
     sendValidationError(res, parsed.error);
     return;
   }
   const codeHash = hashOpaqueSecret("comp", parsed.data.code);
+  const ip = clientIp(req);
+  const userAgent = clientUserAgent(req);
   try {
     const result = await db.transaction(async (tx) => {
       const [code] = await tx
@@ -103,17 +122,33 @@ router.post("/comp-codes/redeem", async (req, res): Promise<void> => {
         .from(compCodesTable)
         .where(eq(compCodesTable.codeHash, codeHash))
         .for("update");
-      if (!code || code.revokedAt) return { status: 400 as const };
+      if (!code || code.revokedAt) return { kind: "invalid" as const };
+
+      let holderId = code.boundUserId;
+      if (!holderId && code.boundAt) return { kind: "mismatch" as const, code };
+      if (!holderId) {
+        const [prior] = await tx
+          .select({ userId: compRedemptionsTable.userId, redeemedAt: compRedemptionsTable.redeemedAt })
+          .from(compRedemptionsTable)
+          .where(and(eq(compRedemptionsTable.codeId, code.id), isNull(compRedemptionsTable.revokedAt)))
+          .orderBy(compRedemptionsTable.redeemedAt)
+          .limit(1);
+        if (prior) {
+          holderId = prior.userId;
+          await tx
+            .update(compCodesTable)
+            .set({ boundUserId: prior.userId, boundAt: prior.redeemedAt })
+            .where(eq(compCodesTable.id, code.id));
+        }
+      }
+      if (holderId === user.id) return { kind: "noop" as const };
+      if (holderId) return { kind: "mismatch" as const, code };
+
       const [existingGrant] = await tx
         .select({ id: compGrantsTable.id })
         .from(compGrantsTable)
         .where(and(eq(compGrantsTable.userId, user.id), isNull(compGrantsTable.revokedAt)));
-      if (existingGrant) return { status: 409 as const };
-      const liveRedemptions = await tx
-        .select({ id: compRedemptionsTable.id })
-        .from(compRedemptionsTable)
-        .where(and(eq(compRedemptionsTable.codeId, code.id), isNull(compRedemptionsTable.revokedAt)));
-      if (code.singleUse && liveRedemptions.length > 0) return { status: 400 as const };
+      if (existingGrant) return { kind: "already" as const };
       const [redemption] = await tx.insert(compRedemptionsTable).values({
         codeId: code.id,
         userId: user.id,
@@ -123,13 +158,46 @@ router.post("/comp-codes/redeem", async (req, res): Promise<void> => {
         redemptionId: redemption.id,
         activeUserId: user.id,
       });
-      return { status: 200 as const };
+      await tx
+        .update(compCodesTable)
+        .set({ boundUserId: user.id, boundAt: new Date() })
+        .where(eq(compCodesTable.id, code.id));
+      return { kind: "bound" as const };
     });
-    if (result.status === 409) {
+    if (result.kind === "already") {
       res.status(409).json({ error: "This account already has comp access" });
       return;
     }
-    if (result.status === 400) {
+    if (result.kind === "invalid") {
+      res.status(400).json({ error: "That code is not valid" });
+      return;
+    }
+    if (result.kind === "mismatch") {
+      const accountOk = allowIncidentForAccount(`acct:${user.id}`);
+      const ipOk = allowIncidentForIp(`ip:${ip}`);
+      const withinAlertBudget = accountOk && ipOk;
+      if (withinAlertBudget) {
+        const [incident] = await db.insert(compCodeIncidentsTable).values({
+          codeId: result.code.id,
+          attemptingUserId: user.id,
+          ip,
+          userAgent,
+        }).returning();
+        await writeAudit(
+          user.id,
+          "comp_code.incident",
+          "comp_code",
+          result.code.id,
+          `blocked redemption from ${ip}`,
+        );
+        await notifyCompIncident({
+          incidentId: incident.id,
+          codeId: result.code.id,
+          codeHint: result.code.codeHint,
+          attemptingUserId: user.id,
+          createdAt: incident.createdAt.toISOString(),
+        });
+      }
       res.status(400).json({ error: "That code is not valid" });
       return;
     }
@@ -257,6 +325,107 @@ router.delete("/comp-delegates", async (req, res): Promise<void> => {
   }
   await writeAudit(admin.id, "comp_delegate.revoke", "user", row.userId, null);
   res.status(204).send();
+});
+
+async function requireCompStaff(req: Request, res: Response) {
+  const user = requireUser(req, res);
+  if (!user) return null;
+  if (!(await isCompStaff(user))) {
+    res.status(403).json({ error: "Only an administrator or the comp delegate can view comp incidents" });
+    return null;
+  }
+  return user;
+}
+
+router.get("/comp-code-incidents/unread", async (req, res): Promise<void> => {
+  const user = await requireCompStaff(req, res);
+  if (!user) return;
+  const [incidents, reads] = await Promise.all([
+    db.select({ id: compCodeIncidentsTable.id }).from(compCodeIncidentsTable),
+    db
+      .select({ incidentId: compCodeIncidentReadsTable.incidentId })
+      .from(compCodeIncidentReadsTable)
+      .where(eq(compCodeIncidentReadsTable.userId, user.id)),
+  ]);
+  const seen = new Set(reads.map((row) => row.incidentId));
+  res.json({ count: incidents.filter((row) => !seen.has(row.id)).length });
+});
+
+router.get("/comp-code-incidents", async (req, res): Promise<void> => {
+  const user = await requireCompStaff(req, res);
+  if (!user) return;
+  const rows = await db
+    .select({
+      id: compCodeIncidentsTable.id,
+      codeId: compCodeIncidentsTable.codeId,
+      codeHint: compCodesTable.codeHint,
+      boundUserId: compCodesTable.boundUserId,
+      attemptingUserId: compCodeIncidentsTable.attemptingUserId,
+      attemptingEmail: usersTable.email,
+      attemptingName: usersTable.displayName,
+      ip: compCodeIncidentsTable.ip,
+      userAgent: compCodeIncidentsTable.userAgent,
+      status: compCodeIncidentsTable.status,
+      createdAt: compCodeIncidentsTable.createdAt,
+      resolvedAt: compCodeIncidentsTable.resolvedAt,
+    })
+    .from(compCodeIncidentsTable)
+    .innerJoin(compCodesTable, eq(compCodesTable.id, compCodeIncidentsTable.codeId))
+    .innerJoin(usersTable, eq(usersTable.id, compCodeIncidentsTable.attemptingUserId))
+    .orderBy(desc(compCodeIncidentsTable.createdAt))
+    .limit(100);
+  if (rows.length > 0) {
+    await db
+      .insert(compCodeIncidentReadsTable)
+      .values(rows.map((row) => ({ incidentId: row.id, userId: user.id })))
+      .onConflictDoNothing({
+        target: [compCodeIncidentReadsTable.incidentId, compCodeIncidentReadsTable.userId],
+      });
+  }
+  res.json(rows.map((row) => ({
+    id: row.id,
+    codeId: row.codeId,
+    codeHint: row.codeHint,
+    boundUserId: row.boundUserId,
+    attemptingUserId: row.attemptingUserId,
+    attemptingEmail: row.attemptingEmail,
+    attemptingName: row.attemptingName,
+    ip: row.ip,
+    userAgent: row.userAgent,
+    status: row.status,
+    createdAt: row.createdAt.toISOString(),
+    resolvedAt: row.resolvedAt?.toISOString() ?? null,
+  })));
+});
+
+router.post("/comp-code-incidents/:id/resolve", async (req, res): Promise<void> => {
+  const user = await requireCompStaff(req, res);
+  if (!user) return;
+  const id = parseIntParam(req.params.id);
+  if (id === null) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  const parsed = incidentResolveBody.safeParse(req.body);
+  if (!parsed.success) {
+    sendValidationError(res, parsed.error);
+    return;
+  }
+  const [row] = await db
+    .update(compCodeIncidentsTable)
+    .set({
+      status: parsed.data.status,
+      resolvedAt: new Date(),
+      resolvedByUserId: user.id,
+    })
+    .where(eq(compCodeIncidentsTable.id, id))
+    .returning();
+  if (!row) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  await writeAudit(user.id, "comp_code.incident.resolve", "comp_code_incident", id, parsed.data.status);
+  res.json({ id: row.id, status: row.status, resolvedAt: row.resolvedAt?.toISOString() ?? null });
 });
 
 export default router;

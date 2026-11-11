@@ -14,4 +14,6 @@ export interface AuthUser {
   displayName: string;
   role: AuthUserRole;
   entitlement: AuthUserEntitlement;
+  /** True for an administrator or the active comp delegate. They can issue codes and review comp-code incidents. */
+  compStaff: boolean;
 }

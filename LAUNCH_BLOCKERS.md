@@ -7,7 +7,7 @@ These items have to be finished before the forums, private rooms, or uploads go 
 | Register a DMCA designated agent with the U.S. Copyright Office | TBD |
 | Adopt a takedown and repeat-infringer policy | TBD |
 | Adopt terms of use | TBD |
-| Adopt a privacy policy | TBD |
+| Adopt a privacy policy. The policy must disclose that comp-code security investigations log the IP address and device information (user agent) of a blocked redemption attempt, and it must state a retention period for those records. | TBD |
 | Obtain written licenses from the Vatican Apostolic Library rights office before publishing any Vatican images or texts | TBD |
 | Root LICENSE file (licence choice pending owner decision) | TBD |
 | Commercial-use terms: sources whose terms allow only noncommercial/academic use or require free access (Vatican Library, CDLI, museum NC images) stay link-only/restricted until counsel decides whether the paid membership counts as commercial use. | TBD |

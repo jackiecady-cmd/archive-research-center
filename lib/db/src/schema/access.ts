@@ -36,6 +36,9 @@ export const compCodesTable = pgTable("comp_codes", {
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  /** First account that redeemed this code. Later accounts cannot take it over. */
+  boundUserId: integer("bound_user_id").references(() => usersTable.id, { onDelete: "set null" }),
+  boundAt: timestamp("bound_at", { withTimezone: true }),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
   revokedByUserId: integer("revoked_by_user_id").references(() => usersTable.id, { onDelete: "set null" }),
 });
@@ -76,6 +79,43 @@ export const compGrantsTable = pgTable("comp_grants", {
 });
 
 export type CompGrant = typeof compGrantsTable.$inferSelect;
+
+/**
+ * A different account tried a code that is already bound.
+ * Status is open, reviewed, or dismissed. IP and user agent are for the security investigation.
+ */
+export const compCodeIncidentsTable = pgTable("comp_code_incidents", {
+  id: serial("id").primaryKey(),
+  codeId: integer("code_id")
+    .notNull()
+    .references(() => compCodesTable.id, { onDelete: "cascade" }),
+  attemptingUserId: integer("attempting_user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  ip: text("ip").notNull(),
+  userAgent: text("user_agent").notNull(),
+  status: text("status").notNull().default("open"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  resolvedByUserId: integer("resolved_by_user_id").references(() => usersTable.id, { onDelete: "set null" }),
+});
+
+export type CompCodeIncident = typeof compCodeIncidentsTable.$inferSelect;
+
+/** Per-staff read mark so the unread badge clears for the person who opened the list. */
+export const compCodeIncidentReadsTable = pgTable(
+  "comp_code_incident_reads",
+  {
+    incidentId: integer("incident_id")
+      .notNull()
+      .references(() => compCodeIncidentsTable.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
+    readAt: timestamp("read_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("comp_code_incident_reads_once").on(table.incidentId, table.userId)],
+);
 
 export const serviceTokensTable = pgTable("service_tokens", {
   id: serial("id").primaryKey(),

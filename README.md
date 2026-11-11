@@ -86,8 +86,15 @@ should set `users.billing_entitlement` to `paid` or `free`. Comp is a separate
 grant and overrides billing, so a comp account has every paid privilege until
 an administrator revokes the code that granted it. Codes are single-use by
 default, stored as a SHA-256 hash (mix in `COMP_CODE_PEPPER` in production),
-and redemption is rate-limited. Only an administrator, plus at most one
-designated delegate, can create codes. Revoking a code removes the comp grant.
+and redemption is rate-limited per account and per IP. A code binds to the
+first account that redeems it. A later attempt from a different account is
+refused with the same message as an invalid code, and the holder keeps
+access. That attempt is stored for the administrator and the comp delegate,
+including the IP address and user agent, and can be sent to
+`COMP_INCIDENT_WEBHOOK_URL` when that variable is set. `COMP_INCIDENT_NOTIFY_EMAIL`
+selects an address for a future mail transport and does not send mail.
+Only an administrator, plus at most one designated delegate, can create
+codes. Revoking a code removes the comp grant.
 If the account also has paid billing, it falls back to paid. Otherwise it
 returns to free.
 

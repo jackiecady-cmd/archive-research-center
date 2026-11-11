@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import {
   Book, Library, Users, UserCircle, Search, FileText,
@@ -6,6 +7,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { apiSend } from "@/lib/api";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 const NAV_ITEMS = [
@@ -42,6 +44,17 @@ function NavContents({
   onNavigate?: () => void;
 }) {
   const { user, loading } = useAuth();
+  const unread = useQuery({
+    queryKey: ["comp-incidents-unread"],
+    enabled: user?.compStaff === true,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const result = await apiSend("/api/comp-code-incidents/unread");
+      if (!result.ok) return { count: 0 };
+      return result.json as { count: number };
+    },
+  });
+  const unreadCount = unread.data?.count ?? 0;
   return (
     <nav className="flex-1 overflow-y-auto px-4 pb-4 space-y-8">
       {SECTIONS.map(({ key, label }) => {
@@ -67,7 +80,15 @@ function NavContents({
                 )}
               >
                 <item.icon className="h-4 w-4 flex-shrink-0" />
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {item.href === "/account" && unreadCount > 0 ? (
+                  <span
+                    className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground"
+                    aria-label={`${unreadCount} unread comp code alerts`}
+                  >
+                    {unreadCount}
+                  </span>
+                ) : null}
               </Link>
             ))}
           </div>
