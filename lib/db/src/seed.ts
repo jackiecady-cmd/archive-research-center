@@ -92,22 +92,21 @@ const SOURCES = [
     collectionSlug: "greco-roman",
     author: "Unknown",
     dateLabel: "c. 300 CE (copy); composition possibly 1st–2nd c.",
-    language: "English (translation)",
-    originalLanguage: "Greek (Koinē)",
-    originalLanguageText:
-      "καὶ πρoσελθὼν εἷς τῶν Φαρισαίων ἠρώτα αὐτόν·\nδιδάσκαλε, τί ποιήσας ζωὴν αἰώνιον κληρονομήσω;",
+    language: "No Greek or English included",
+    originalLanguage: "Greek",
     provenance:
-      "Excavated at Oxyrhynchus, Egypt, by Grenfell and Hunt (1897–1907). Now held at the Bodleian Libraries, Oxford. Published in The Oxyrhynchus Papyri, vol. X (1914).",
+      "Excavated at Oxyrhynchus, Egypt. Published as no. 1224 by Bernard P. Grenfell and Arthur S. Hunt, The Oxyrhynchus Papyri, Part X (London: Egypt Exploration Fund, 1914).",
     confidence: "medium",
     chronology:
-      "Palaeographic dating places the copy in the early 4th century CE. The underlying composition may be 1st–2nd century, but the relationship to canonical gospels is debated.",
+      "The 1914 edition dates the copy by its handwriting. This record does not repeat that edition's Greek or English.",
     availability: "public_domain",
-    rightsStatement: "Public domain. Digital images © Bodleian Libraries.",
+    rightsStatement:
+      "The Greek and the English previously stored here were removed. They were not confirmed against Grenfell and Hunt, The Oxyrhynchus Papyri, Part X (1914). The volume itself is public domain: https://archive.org/details/oxyrhynchuspapyr0000bern",
     description:
-      "A fragmentary papyrus preserving uncanonical sayings of Jesus in Greek Koinē. The text overlaps with but diverges from the canonical Synoptic tradition, making it significant for the study of early Christian oral and written transmission.",
+      "A catalogue reference to papyrus Oxyrhynchus 1224. No transcription and no translation are included.",
     excerpt:
-      "A Pharisee approached and asked him: 'Teacher, what must I do to inherit eternal life?' — a question paralleled in the Synoptics but here in a form suggesting independent transmission.",
-    externalUrl: "https://www.papyri.info/ddbdp/p.oxy;10;1224",
+      "No Greek or English of the fragment is included.",
+    externalUrl: "https://archive.org/details/oxyrhynchuspapyr0000bern",
     tags: ["Jesus", "gospel", "papyrus", "Oxyrhynchus", "early Christianity"],
     yearApprox: 300,
   },
@@ -216,23 +215,21 @@ const SOURCES = [
     collectionSlug: "ecclesiastical",
     author: "Unknown (scribal team, possibly Caesarea Maritima)",
     dateLabel: "c. 330–360 CE",
-    language: "English (translation)",
-    originalLanguage: "Greek (Koinē)",
-    originalLanguageText:
-      "Μακάριοι οἱ πτωχοὶ τῷ πνεύματι, ὅτι αὐτῶν ἐστιν ἡ βασιλεία τῶν οὐρανῶν.\nμακάριοι οἱ πενθοῦντες, ὅτι αὐτοὶ παρακληθήσονται.\nμακάριοι οἱ πραεῖς, ὅτι αὐτοὶ κληρονομήσουσιν τὴν γῆν.",
+    language: "English (King James Version, 1611)",
+    originalLanguage: "Greek",
     provenance:
-      "Discovered at St Catherine's Monastery, Sinai, by Constantin von Tischendorf in 1844 and 1859. Portions held at the British Library (347 leaves), Leipzig University Library, National Library of Russia, and St Catherine's Monastery. Fully digitized and available online.",
+      "Discovered at St Catherine's Monastery, Sinai, by Constantin von Tischendorf in 1844 and 1859. Leaves are held at the British Library, Leipzig University Library, the National Library of Russia, and St Catherine's Monastery.",
     confidence: "high",
     chronology:
-      "Palaeographic and codicological analysis places composition in the 4th century CE, possibly connected with the Eusebian canon tables production under Constantine.",
-    availability: "open_access",
+      "The copy is fourth century. The English is the King James Version of Matthew 5:3–5, which translates the received text, not a line of Codex Sinaiticus.",
+    availability: "public_domain",
     rightsStatement:
-      "Digital images freely available at codexsinaiticus.org. Physical leaves held by four partner institutions.",
+      "English: King James Version (1611), Matthew 5:3–5. Public domain. Checked against Wikisource. Greek is omitted: the transcription at codexsinaiticus.org is under Creative Commons BY-NC-SA 3.0, and a public-domain diplomatic copy was not checked line by line. No manuscript image is included.",
     description:
-      "Codex Sinaiticus is one of the two oldest complete New Testament manuscripts (with Codex Vaticanus). It is written in Greek Koinē by multiple scribes and contains numerous corrections made by later hands, making it a critical witness to early textual transmission.",
+      "Codex Sinaiticus is one of the oldest extensive Greek Bible manuscripts. The English here is the King James Version of the Beatitudes, not a translation made from this manuscript.",
     excerpt:
-      "Blessed are the poor in spirit, for theirs is the kingdom of heaven. Blessed are those who mourn, for they will be comforted. Blessed are the meek, for they will inherit the earth.",
-    externalUrl: "https://www.codexsinaiticus.org/en/",
+      "Blessed are the poor in spirit: for their's is the kingdom of heaven. Blessed are they that mourn: for they shall be comforted. Blessed are the meek: for they shall inherit the earth.",
+    externalUrl: "https://en.wikisource.org/wiki/Bible_(King_James)/Matthew",
     tags: ["Codex Sinaiticus", "New Testament", "Matthew", "Greek manuscript", "4th century"],
     yearApprox: 350,
   },
@@ -245,7 +242,7 @@ const SOURCES = [
     language: "No English included",
     originalLanguage: "Hebrew and Aramaic",
     provenance:
-      "This folio belongs to the Babylonian Talmud, not the Mishnah. The usual printed Bavli is the Romm edition (Vilna, 1880–1886). The notice about Yeshu is missing or censored in many printed copies, including printed editions in that tradition, and is preserved in Munich, Bayerische Staatsbibliothek, Cod. hebr. 95.",
+      "This folio belongs to the Babylonian Talmud, not the Mishnah. The usual printed Bavli is the Romm edition (Vilna, from 1882). The notice about Yeshu is missing or censored in many printed copies, including printed editions in that tradition, and is preserved in Munich, Bayerische Staatsbibliothek, Cod. hebr. 95.",
     confidence: "medium",
     chronology:
       "Scholars dispute whether 'Yeshu' in this folio is Jesus of Nazareth. No English is printed here.",
@@ -266,20 +263,21 @@ const SOURCES = [
     collectionSlug: "ecclesiastical",
     author: "Eusebius of Caesarea",
     dateLabel: "c. 313 CE (final edition)",
-    language: "English (translation)",
-    originalLanguage: "Greek (Koinē)",
+    language: "English (McGiffert, 1890)",
+    originalLanguage: "Greek",
     provenance:
-      "Transmitted in Greek manuscript tradition. Earliest MSS 11th century. Critical edition by Schwartz and Mommsen (GCS series, 1903–1909).",
+      "Transmitted in the Greek manuscript tradition. The English is Arthur Cushman McGiffert's translation.",
     confidence: "high",
     chronology:
       "The Historia Ecclesiastica went through multiple editions (c. 295–325 CE). Eusebius drew on earlier sources, some of which do not survive independently.",
     availability: "public_domain",
-    rightsStatement: "Public domain. NPNF English translation (Schaff, 1890) also in public domain.",
+    rightsStatement:
+      "English: Arthur Cushman McGiffert, in Philip Schaff and Henry Wace, eds., A Select Library of Nicene and Post-Nicene Fathers of the Christian Church, Second Series, vol. 1 (New York: Christian Literature Publishing Co., 1890), Church History I.1. Public domain. Checked word for word against CCEL.",
     description:
       "The foundational work of Christian historiography, covering the church from apostolic times to Constantine. Eusebius preserves quotations from earlier sources now lost, making the Historia a critical secondary witness to 1st–3rd century Christianity.",
     excerpt:
-      "It is my purpose to write an account of the successions of the holy apostles, as well as of the times which have elapsed from the days of our Saviour to our own — and to relate the many important events which occurred in the history of the Church.",
-    externalUrl: "https://www.ccel.org/ccel/schaff/npnf201.iii.html",
+      "It is my purpose to write an account of the successions of the holy apostles, as well as of the times which have elapsed from the days of our Saviour to our own; and to relate the many important events which are said to have occurred in the history of the Church; and to mention those who have governed and presided over the Church in the most prominent parishes, and those who in each generation have proclaimed the divine word either orally or in writing.",
+    externalUrl: "https://ccel.org/ccel/schaff/npnf201.iii.vi.i.html",
     tags: ["Eusebius", "church history", "patristics", "4th century"],
     yearApprox: 313,
   },
@@ -384,22 +382,20 @@ const SOURCES = [
     collectionSlug: "numismatic",
     author: "Roman provincial administration",
     dateLabel: "c. 26–37 CE",
-    language: "English (translation)",
+    language: "No Latin or English of the inscription included",
     originalLanguage: "Latin",
-    originalLanguageText:
-      "[DIS AUGUSTIS TIBERIÉUM\n[PON]TIUS PILATUS\n[PRAEF]ECTUS IUDA[EA]E\n[FECIT D]E[DICAVIT]",
     provenance:
-      "Discovered in 1961 during excavations of the Roman theatre at Caesarea Maritima, Israel, by Italian archaeologist Antonio Frova. Now held at the Israel Antiquities Authority, displayed in the Israel Museum, Jerusalem.",
+      "Discovered in 1961 during excavations of the Roman theatre at Caesarea Maritima by Antonio Frova. Held by the Israel Antiquities Authority and displayed at the Israel Museum, Jerusalem.",
     confidence: "high",
     chronology:
-      "The inscription dates to Pilate's tenure as prefect of Judaea (c. 26–37 CE). It is the only contemporary epigraphic evidence for Pilate's existence and his title (Prefect, not Procurator as earlier tradition held).",
-    availability: "open_access",
+      "The stone dates from Pilate's time as governor of Judaea (c. 26–37 CE). It is the only contemporary inscription that names him.",
+    availability: "restricted",
     rightsStatement:
-      "Archaeological find held by the Israel Antiquities Authority. Images in public domain via IAA digital collections.",
+      "The Latin reconstruction and its English were removed because they were not checked against a named edition. No photograph is included. A claim that Israel Antiquities Authority images are in the public domain was removed because no source for that claim was found.",
     description:
-      "The Pilate Stone is the only surviving contemporary archaeological evidence for Pontius Pilate. Discovered during excavations of the Roman theatre at Caesarea Maritima, it confirms his title as Praefectus Iudaeae (Prefect of Judaea). The inscription was originally part of a Tiberieum — a building dedicated to the Emperor Tiberius.",
+      "A limestone dedication from Caesarea Maritima that names Pontius Pilate. This record does not print a reconstructed Latin text or an English translation of the inscription.",
     excerpt:
-      "[To the divine Augusti, the Tiberieum / [Pon]tius Pilate / [Pref]ect of Judae[a] / [had this d]e[dicated]]",
+      "No Latin reconstruction and no English translation of the inscription are included.",
     externalUrl: "https://www.imj.org.il/en/collections/371440",
     tags: ["Pilate", "inscription", "epigraphy", "Caesarea Maritima", "Roman governor", "1st century"],
     yearApprox: 30,
@@ -419,7 +415,7 @@ const SOURCES = [
     chronology:
       "The ossuary itself is consistent with 1st-century Jerusalem burial practice. The authenticity of the second part of the inscription ('brother of Jesus') is the point of dispute — some scholars consider it a later addition.",
     availability: "open_access",
-    rightsStatement: "Photographs in public domain. Ossuary held privately.",
+    rightsStatement: "The ossuary is privately held. No photograph is included.",
     description:
       "An Aramaic inscription on a limestone ossuary reading 'James, son of Joseph, brother of Jesus.' If authentic in its entirety, it would be the earliest artifact directly naming Jesus of Nazareth. The scholarly consensus remains divided: the first part of the inscription ('James, son of Joseph') is generally accepted; the second part ('brother of Jesus') is contested.",
     excerpt:
