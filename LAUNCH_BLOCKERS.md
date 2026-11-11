@@ -9,3 +9,4 @@ These items have to be finished before the forums, private rooms, or uploads go 
 | Adopt terms of use | TBD |
 | Adopt a privacy policy | TBD |
 | Obtain written licenses from the Vatican Apostolic Library rights office before publishing any Vatican images or texts | TBD |
+| Root LICENSE file (licence choice pending owner decision) | TBD |

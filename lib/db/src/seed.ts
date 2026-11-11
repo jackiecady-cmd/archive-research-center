@@ -18,6 +18,9 @@ const REMOVED_SOURCE_TITLES = [
   "Ireland Civil Registration Index — Births 1864–1900 (Connacht Province)",
   "Archdiocese of Quebec — Marriage Registers 1621–1800 (PRDH Index)",
   "Mishnah Tractate Sanhedrin 43a — Yeshu and His Disciples",
+  "Parish Register of St Bride's, Fleet Street — Baptismal Entries 1653–1700",
+  "England & Wales Census 1911 — Individual Household Returns",
+  "Swedish Household Examination Records (Husförhörslängder) 1800–1895",
 ];
 
 // ── Collections ───────────────────────────────────────────────────────────────
@@ -40,15 +43,6 @@ const COLLECTIONS = [
       "Biblical manuscripts, church fathers, rabbinic texts, and Second Temple period writings held in institutional and digital collections.",
     iconLabel: "✝",
     featured: true,
-  },
-  {
-    name: "Parish & Civil Records",
-    slug: "parish-civil",
-    subject: "Parish and civil registers",
-    description:
-      "Baptismal registers, marriage records, and civil registers kept as historical sources.",
-    iconLabel: "🗂",
-    featured: false,
   },
   {
     name: "Census & Population Registers",
@@ -215,18 +209,18 @@ const SOURCES = [
     collectionSlug: "ecclesiastical",
     author: "Unknown (scribal team, possibly Caesarea Maritima)",
     dateLabel: "c. 330–360 CE",
-    language: "English (King James Version, 1611)",
+    language: "English (KJV (standard text, Wikisource))",
     originalLanguage: "Greek",
     provenance:
       "Discovered at St Catherine's Monastery, Sinai, by Constantin von Tischendorf in 1844 and 1859. Leaves are held at the British Library, Leipzig University Library, the National Library of Russia, and St Catherine's Monastery.",
     confidence: "high",
     chronology:
-      "The copy is fourth century. The English is the King James Version of Matthew 5:3–5, which translates the received text, not a line of Codex Sinaiticus.",
+      "The copy is fourth century. The English is the KJV (standard text, Wikisource) of Matthew 5:3–5, which translates the received text, not a line of Codex Sinaiticus.",
     availability: "public_domain",
     rightsStatement:
-      "English: King James Version (1611), Matthew 5:3–5. Public domain. Checked against Wikisource. Greek is omitted: the transcription at codexsinaiticus.org is under Creative Commons BY-NC-SA 3.0, and a public-domain diplomatic copy was not checked line by line. No manuscript image is included.",
+      "English: KJV (standard text, Wikisource), Matthew 5:3–5. Public domain. Greek is omitted: the transcription at codexsinaiticus.org is under Creative Commons BY-NC-SA 3.0, and a public-domain diplomatic copy was not checked line by line. No manuscript image is included.",
     description:
-      "Codex Sinaiticus is one of the oldest extensive Greek Bible manuscripts. The English here is the King James Version of the Beatitudes, not a translation made from this manuscript.",
+      "Codex Sinaiticus is one of the oldest extensive Greek Bible manuscripts. The English here is the KJV (standard text, Wikisource) of the Beatitudes, not a translation made from this manuscript.",
     excerpt:
       "Blessed are the poor in spirit: for their's is the kingdom of heaven. Blessed are they that mourn: for they shall be comforted. Blessed are the meek: for they shall inherit the earth.",
     externalUrl: "https://en.wikisource.org/wiki/Bible_(King_James)/Matthew",
@@ -282,31 +276,6 @@ const SOURCES = [
     yearApprox: 313,
   },
 
-  // ── Parish & Civil Records ───────────────────────────────────────────────
-
-  {
-    title: "Parish Register of St Bride's, Fleet Street — Baptismal Entries 1653–1700",
-    sourceType: "primary",
-    collectionSlug: "parish-civil",
-    author: "Various parish clergy",
-    dateLabel: "1653–1700",
-    language: "English",
-    provenance:
-      "Original registers held at London Metropolitan Archives, reference P69/BRI2/A/001/MS06540.",
-    confidence: "high",
-    chronology:
-      "Civil registration did not begin in England until 1837. These parish registers are a primary record of 17th-century London parish life.",
-    availability: "restricted",
-    rightsStatement:
-      "Original records © London Metropolitan Archives. Digital images available via FindMyPast subscription. Physical access by appointment.",
-    description:
-      "Baptismal, marriage, and burial registers for one of the oldest City of London parishes. The registers span the Interregnum, Restoration, and early modern periods and include records of printers, journalists, and Fleet Street tradespeople.",
-    excerpt:
-      "Entries record forenames, surnames, dates of baptism, and father's name (or mother's name for illegitimate births), sometimes with occupation. Handwriting varies by incumbent.",
-    tags: ["London", "baptismal register", "parish records", "17th century"],
-    yearApprox: 1676,
-  },
-
   // ── Census & Population Registers ────────────────────────────────────────
 
   {
@@ -329,49 +298,6 @@ const SOURCES = [
     externalUrl: "https://www.archives.gov/research/census/1880",
     tags: ["US Census", "1880", "immigration", "household records"],
     yearApprox: 1880,
-  },
-  {
-    title: "England & Wales Census 1911 — Individual Household Returns",
-    sourceType: "primary",
-    collectionSlug: "census",
-    author: "General Register Office, England and Wales",
-    dateLabel: "2 April 1911",
-    language: "English",
-    provenance:
-      "Original schedules held at The National Archives, Kew, Record Series RG14. Digitized by FindMyPast in partnership with The National Archives. Available online from 2009 (100-year closure rule).",
-    confidence: "high",
-    availability: "restricted",
-    rightsStatement:
-      "Crown copyright expired for 1911 records. Digital images and transcription © FindMyPast / The National Archives. Subscription required for full image access.",
-    description:
-      "The 1911 Census is valuable because householders completed their own returns in their own handwriting, rather than enumerators copying entries. It is also the first to record years married, children born alive, and children still living.",
-    excerpt:
-      "Schedule includes: name, relationship, age, sex, occupation, birthplace, nationality, infirmity. Married women's fertility question adds: years married, children born alive, children still living.",
-    externalUrl: "https://www.findmypast.co.uk/1911census",
-    tags: ["England", "Wales", "census 1911", "household records"],
-    yearApprox: 1911,
-  },
-  {
-    title: "Swedish Household Examination Records (Husförhörslängder) 1800–1895",
-    sourceType: "primary",
-    collectionSlug: "census",
-    author: "Church of Sweden (Swedish Lutheran parishes)",
-    dateLabel: "1800–1895",
-    language: "English (index); Swedish (originals)",
-    originalLanguage: "Swedish",
-    provenance:
-      "Original records held by Swedish regional archives (landsarkiv). Digitized by the Church of Sweden and hosted on Arkiv Digital and SVAR (Swedish Archive Image Bank).",
-    confidence: "high",
-    availability: "restricted",
-    rightsStatement:
-      "Original records public domain. Digital access via Arkiv Digital subscription or SVAR. Some records freely available via Demografiska databasen (DDB).",
-    description:
-      "The Swedish household examination records are among the most comprehensive pre-modern population registers in the world. Clergy visited every household annually, recording literacy and religious knowledge alongside demographic data.",
-    excerpt:
-      "Entries record household by household: head of household, spouse, children, servants; ages; birthplaces; literacy rating; dates of communion; and notations on moves in and out of the parish.",
-    externalUrl: "https://www.arkivdigital.net",
-    tags: ["Sweden", "household examination", "Lutheran", "Scandinavian records"],
-    yearApprox: 1850,
   },
 
   // ── Numismatic & Epigraphic Evidence ─────────────────────────────────────
@@ -410,12 +336,13 @@ const SOURCES = [
     originalLanguage: "Aramaic",
     originalLanguageText: "יעקוב בר יוסף אחוי דישוע",
     provenance:
-      "Acquired on the antiquities market; ownership claimed by Oded Golan, Israel. Announced publicly in 2002. Subject to Israeli forgery trial (2003–2012); Golan acquitted 2012 but authenticity remains disputed among scholars.",
+      "Acquired on the antiquities market; ownership claimed by Oded Golan, Israel. Reading as commonly reported since 2002; IAA examining committees (summary 20 June 2003) judged the ossuary authentic and the inscription a modern forgery; Oded Golan was acquitted of forgery in 2012; the reading remains disputed.",
     confidence: "uncertain",
     chronology:
       "The ossuary itself is consistent with 1st-century Jerusalem burial practice. The authenticity of the second part of the inscription ('brother of Jesus') is the point of dispute — some scholars consider it a later addition.",
     availability: "open_access",
-    rightsStatement: "The ossuary is privately held. No photograph is included.",
+    rightsStatement:
+      "The ossuary is privately held. No photograph is included. Reading as commonly reported since 2002; IAA examining committees (summary 20 June 2003) judged the ossuary authentic and the inscription a modern forgery; Oded Golan was acquitted of forgery in 2012; the reading remains disputed.",
     description:
       "An Aramaic inscription on a limestone ossuary reading 'James, son of Joseph, brother of Jesus.' If authentic in its entirety, it would be the earliest artifact directly naming Jesus of Nazareth. The scholarly consensus remains divided: the first part of the inscription ('James, son of Joseph') is generally accepted; the second part ('brother of Jesus') is contested.",
     excerpt:
@@ -440,11 +367,11 @@ const SOURCES = [
       "Minted continuously during Tiberius's reign (14–37 CE). The coin type is the leading candidate for the 'denarius of Caesar' referenced in the Gospels' tribute episode (Matthew 22:15–22 and parallels).",
     availability: "public_domain",
     rightsStatement:
-      "Coin images from the British Museum collection available under Creative Commons via the British Museum online collection.",
+      "No coin image is included. A British Museum image licence was not confirmed for specimen 1867,0101.1266, so no Creative Commons claim is made.",
     description:
       "The silver denarius of Tiberius is the standard identification for the 'tribute penny' of the Gospel accounts. The obverse shows Tiberius's laureate portrait with his name and divine lineage; the reverse identifies him as Pontifex Maximus. Its ubiquity in 1st-century Palestine is confirmed by numismatic finds at Masada, Qumran, and Jerusalem.",
     excerpt:
-      "Obverse: TI CAESAR DIVI AVG F AVGVSTVS ('Tiberius Caesar, son of the divine Augustus, Augustus'). Reverse: PONTIF MAXIM ('Pontifex Maximus'). A seated female figure (Livia as Pax) occupies the reverse field.",
+      "Obverse: TI CAESAR DIVI AVG F AVGVSTVS ('Tiberius Caesar, son of the divine Augustus, Augustus'). Reverse: PONTIF MAXIM ('Pontifex Maximus').",
     externalUrl: "https://www.britishmuseum.org/collection/object/C_1867-0101-1266",
     tags: ["Tiberius", "denarius", "coinage", "tribute penny", "Roman numismatics", "1st century"],
     yearApprox: 25,
@@ -572,6 +499,8 @@ async function seed() {
     await db.delete(sourcesTable).where(inArray(sourcesTable.id, removedIds));
     console.log(`  ✔ Removed ${removedIds.length} retired catalog records`);
   }
+
+  await db.delete(collectionsTable).where(eq(collectionsTable.slug, "parish-civil"));
 
   // Upsert sources (keyed by title — safe for a demo dataset)
   for (const src of SOURCES) {
